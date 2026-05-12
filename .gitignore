@@ -1,0 +1,5 @@
+database.sqlite
+backups/
+scratch/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,202 @@
+MANUAL BOOK SISTEM POSYANDU CEMPAKA SEHAT
+=========================================
+
+BAB 1: PENDAHULUAN
+-----------------------------------------
+1.1 Tentang Aplikasi
+Sistem Posyandu Cempaka Sehat adalah aplikasi berbasis web yang dirancang untuk membantu pengelolaan data posyandu secara digital. Sistem ini memfasilitasi pencatatan data balita, penimbangan (KMS), jadwal imunisasi, konsultasi kesehatan, serta penyajian laporan yang akurat. Aplikasi ini dirancang dengan antarmuka yang ramah pengguna, memudahkan peran Super Admin, Admin Pos, Bidan, dan Ibu Balita dalam memantau tumbuh kembang anak secara real-time.
+
+1.2 Tujuan Manual
+Buku manual ini bertujuan sebagai panduan komprehensif bagi pengguna dalam mengoperasikan Sistem Posyandu Cempaka Sehat. Melalui manual ini, diharapkan pengguna dapat:
+- Memahami alur kerja aplikasi secara keseluruhan.
+- Menggunakan seluruh fitur yang tersedia secara maksimal dan tepat guna.
+- Melakukan administrasi mandiri serta mengatasi kendala-kendala dasar (troubleshooting).
+
+1.3 Prasyarat Sistem
+Untuk dapat menggunakan Sistem Posyandu Cempaka Sehat dengan optimal, berikut adalah prasyarat sistem yang dibutuhkan:
+- Perangkat: Komputer/Laptop, Tablet, atau Smartphone.
+- Sistem Operasi: Windows, macOS, Linux, Android, atau iOS.
+- Browser: Google Chrome, Mozilla Firefox, Microsoft Edge, atau Safari versi terbaru.
+- Koneksi Internet: Diperlukan koneksi internet yang stabil untuk mengakses sistem berbasis web.
+
+BAB 2: MEMULAI CEPAT
+-----------------------------------------
+2.1 Login Pertama Kali
+Langkah-langkah untuk masuk (login) ke dalam sistem:
+1. Buka browser dan akses URL sistem Posyandu Cempaka Sehat.
+2. Pada halaman awal, masukkan Username atau Email yang telah terdaftar.
+3. Masukkan Password dengan benar.
+4. Klik tombol Login.
+5. Jika data valid, Anda akan langsung diarahkan ke halaman Dashboard sesuai dengan hak akses (Role) Anda.
+
+2.2 Navigasi Dasar
+Aplikasi ini menggunakan sistem navigasi Sidebar (menu di sisi kiri) yang memuat berbagai fitur utama, di antaranya:
+- Dashboard: Halaman ringkasan informasi dan grafik.
+- Menu Data: Terdiri dari Balita, Timbang, dan Imunisasi.
+- Menu Layanan: Meliputi Jadwal Kegiatan dan Konsultasi.
+- Laporan & Cetak: Berisi Laporan dan Kartu Identitas/KMS.
+- Pengaturan & Admin: Berisi Manajemen Pengguna dan Backup/Restore.
+
+Untuk berpindah antar menu, cukup klik nama menu pada bagian sidebar.
+
+BAB 3: PANDUAN FITUR
+-----------------------------------------
+Berikut adalah penjelasan detail untuk setiap fitur yang terdapat di dalam aplikasi.
+
+3.1 Dashboard
+Dashboard adalah halaman utama setelah Anda berhasil login, berfungsi sebagai pusat informasi kilat.
+Akses: Super Admin, Admin Pos, Ibu Balita
+
+> Ringkasan Data
+Penjelasan: Menampilkan total jumlah balita terdaftar, jumlah posyandu, serta statistik penimbangan bulan ini berdasarkan data yang dimasukkan.
+Akses: Super Admin (seluruh data), Admin Pos (data posyandu masing-masing), Ibu Balita (data anak sendiri)
+Cara Penggunaan: Login ke sistem, ringkasan data akan muncul secara otomatis di halaman utama Dashboard.
+[ KOLOM GAMBAR : Screenshot Ringkasan Data Dashboard ]
+
+> Grafik KMS & Z-Score
+Penjelasan: Visualisasi grafik tumbuh kembang anak (Berat/Tinggi Badan) berdasarkan standar Z-Score WHO untuk memantau status gizi secara cepat.
+Akses: Super Admin (seluruh data), Admin Pos (data posyandu masing-masing), Ibu Balita (data anak sendiri)
+Cara Penggunaan: Buka menu Dashboard, gulir ke bagian grafik. Untuk Ibu Balita, grafik anak akan langsung tampil. Admin dapat memfilter berdasarkan nama Balita.
+[ KOLOM GAMBAR : Screenshot Grafik KMS di Dashboard ]
+
+> Jadwal Terdekat
+Penjelasan: Menampilkan daftar kegiatan posyandu dan jadwal imunisasi terdekat yang perlu segera dilaksanakan.
+Akses: Super Admin (seluruh jadwal), Admin Pos (jadwal posyandu masing-masing), Ibu Balita (jadwal posyandu tempat anak terdaftar)
+Cara Penggunaan: Periksa widget "Jadwal" atau "Kalender Kegiatan" yang ada pada halaman Dashboard.
+[ KOLOM GAMBAR : Screenshot Daftar Jadwal Terdekat ]
+
+
+3.2 Manajemen Data
+Modul ini digunakan untuk mengelola data utama operasional posyandu.
+
+> Manajemen Balita
+Penjelasan: Fitur untuk menambah (+ Tambah Data), mengedit, dan menghapus data profil balita. Terdapat input khusus seperti Berat/Tinggi Badan Baru Lahir dan penetapan Posyandu asal.
+Akses: Super Admin (seluruh data), Admin Pos (input/edit data posyandu masing-masing), Ibu Balita (hanya melihat profil anak sendiri)
+Cara Penggunaan (Admin): Klik menu 'Balita' -> tombol '+ Tambah Balita' -> Isi form -> Simpan. Untuk edit, klik ikon 'Pensil' pada daftar balita.
+[ KOLOM GAMBAR : Screenshot Form Manajemen Balita ]
+
+> Data Timbang
+Penjelasan: Modul pencatatan hasil penimbangan bulanan balita (Berat/Tinggi). Sistem akan otomatis memplot hasil ini ke dalam grafik KMS dan menghitung status gizinya.
+Akses: Super Admin (seluruh data), Admin Pos (input/edit data penimbangan), Ibu Balita (hanya melihat riwayat timbang anak sendiri)
+Cara Penggunaan (Admin): Klik menu 'Timbang' -> Cari nama balita -> Input hasil timbang baru -> Simpan.
+[ KOLOM GAMBAR : Screenshot Halaman Data Timbang ]
+
+> Data Imunisasi
+Penjelasan: Fitur pencatatan status imunisasi balita sesuai jadwal IDAI/Kemenkes RI. Menggunakan dropdown standar dan memunculkan indikator status (Belum, Segera, Sudah, Terlambat).
+Akses: Super Admin (seluruh data), Admin Pos (input/edit data imunisasi), Ibu Balita (hanya melihat riwayat imunisasi anak sendiri)
+Cara Penggunaan (Admin): Klik menu 'Imunisasi' -> Pilih Balita -> Update status vaksin (Sudah/Belum) -> Klik Simpan.
+[ KOLOM GAMBAR : Screenshot Daftar & Form Imunisasi ]
+
+> Cetak Kartu / KMS
+Penjelasan: Fitur untuk mengenerate dan mencetak Kartu Identitas Balita yang terintegrasi dengan data riwayat kesehatan berbentuk digital.
+Akses: Super Admin (seluruh data), Admin Pos (data posyandunya), Ibu Balita (kartu anak sendiri)
+Cara Penggunaan: Buka 'Detail Balita' -> Klik tombol 'Cetak Kartu' atau 'Lihat KMS Digital' -> Gunakan fungsi cetak pada browser.
+[ KOLOM GAMBAR : Screenshot Kartu KMS & Tombol Cetak ]
+
+> Konsultasi
+Penjelasan: Ruang obrolan/komunikasi interaktif antara Ibu Balita dengan Bidan/Tenaga Kesehatan untuk berkonsultasi mengenai keluhan tumbuh kembang anak.
+Akses: Admin Pos/Bidan (membalas konsultasi), Ibu Balita (memulai konsultasi terkait anaknya)
+Cara Penggunaan: Buka menu 'Konsultasi' -> Klik 'Mulai Obrolan' (untuk Ibu) atau pilih pesan masuk (untuk Bidan) -> Ketik pesan -> Kirim.
+[ KOLOM GAMBAR : Screenshot Antarmuka Chat Konsultasi ]
+
+
+3.3 Laporan
+
+> Laporan Bulanan
+Penjelasan: Fitur rekapitulasi data kunjungan posyandu, hasil penimbangan, dan status imunisasi yang dapat difilter berdasarkan bulan, tahun, dan posyandu.
+Akses: Super Admin (seluruh data wilayah), Admin Pos (data posyandu masing-masing)
+Cara Penggunaan: Buka menu 'Laporan' -> Tentukan filter (Bulan/Posyandu) -> Klik 'Generate Laporan'.
+[ KOLOM GAMBAR : Screenshot Filter & Tabel Laporan ]
+
+> Export/Cetak
+Penjelasan: Menyediakan opsi pengunduhan laporan dalam format dokumen (Excel/PDF) atau langsung mencetaknya sebagai dokumen arsip untuk pihak desa/puskesmas.
+Akses: Super Admin, Admin Pos
+Cara Penggunaan: Setelah data laporan tampil, klik tombol 'Export Excel' atau ikon 'PDF' di pojok laporan.
+[ KOLOM GAMBAR : Screenshot Tombol Export dan Preview Cetak ]
+
+
+3.4 Pengaturan
+
+> Profil Pengguna
+Penjelasan: Fitur untuk mengubah informasi akun yang sedang login, seperti penggantian nama, foto profil, serta pembaruan kata sandi (password).
+Akses: Super Admin, Admin Pos, Ibu Balita (masing-masing untuk akun pribadinya)
+Cara Penggunaan: Klik 'Profil' pada sidebar atau header -> 'Edit' -> Perbarui data yang diinginkan -> Simpan.
+[ KOLOM GAMBAR : Screenshot Form Edit Profil ]
+
+> Manajemen Jadwal
+Penjelasan: Fitur admin untuk menentukan tanggal operasional posyandu dan mempublikasikan jadwal secara global kepada seluruh Ibu Balita.
+Akses: Super Admin, Admin Pos (kelola jadwal), Ibu Balita (hanya melihat jadwal)
+Cara Penggunaan (Admin): Klik menu 'Jadwal' -> '+ Tambah Jadwal' -> Pilih tanggal dan isi deskripsi -> Publikasikan.
+[ KOLOM GAMBAR : Screenshot Kalender Jadwal ]
+
+
+BAB 4: ADMINISTRASI
+-----------------------------------------
+Bagian ini dikhususkan untuk Super Admin dan Admin Pos dalam mengelola struktur inti aplikasi.
+
+4.1 Manajemen Pengguna
+
+> Kelola Role (Akses)
+Penjelasan: Super Admin dapat mengatur dan menetapkan akses pengguna (Role) menjadi: Super Admin, Admin Pos, Bidan, atau Ibu Balita saat pendaftaran atau melalui edit akun.
+Akses: Super Admin
+Cara Penggunaan: Masuk ke 'Pengaturan Admin' -> 'Manajemen User' -> Pilih user -> Klik 'Ubah Akses' -> Simpan.
+[ KOLOM GAMBAR : Screenshot Form Set Role Akses ]
+
+> Data Akun
+Penjelasan: Admin dapat me-reset password pengguna yang lupa, menonaktifkan akun, serta melakukan verifikasi pengguna baru yang mendaftar.
+Akses: Super Admin (seluruh akun), Admin Pos (kelola akun Ibu di wilayahnya)
+Cara Penggunaan: Cari user pada daftar user -> Klik 'Opsi' -> Pilih 'Reset Password' atau 'Nonaktifkan'.
+[ KOLOM GAMBAR : Screenshot Tabel Manajemen Akun ]
+
+
+4.2 Backup & Restore
+
+> Backup Database
+Penjelasan: Fitur untuk mencadangkan (mengunduh) seluruh data posyandu ke dalam sebuah file (.sql/SQLite). Hal ini penting dilakukan rutin untuk keamanan data.
+Akses: Super Admin
+Cara Penggunaan: Klik menu 'Backup' -> Tekan tombol 'Mulai Backup' -> Simpan file yang terunduh ke tempat yang aman.
+[ KOLOM GAMBAR : Screenshot Menu & Tombol Backup ]
+
+> Restore Database
+Penjelasan: Fitur untuk mengunggah dan memulihkan kembali sistem dari file cadangan yang telah diunduh sebelumnya dengan sistem penanganan error (PDOException handling).
+Akses: Super Admin
+Cara Penggunaan: Klik menu 'Restore' -> Pilih file hasil backup -> Klik 'Proses Restore' -> Tunggu hingga selesai.
+[ KOLOM GAMBAR : Screenshot Form Upload File Restore ]
+
+
+BAB 5: TROUBLESHOOTING & FAQ
+-----------------------------------------
+5.1 Troubleshooting (Pemecahan Masalah)
+1. Gagal Login (Username atau Password Salah)
+   - Solusi: Pastikan tombol Caps Lock tidak menyala. Jika lupa password, hubungi Admin Pos atau Super Admin untuk bantuan reset password.
+2. Grafik KMS Tidak Muncul pada Halaman Detail Balita
+   - Solusi: Pastikan data "Timbang" untuk balita tersebut telah diinput (Berat/Tinggi Badan). Grafik memerlukan setidaknya satu data riwayat penimbangan untuk ditampilkan.
+3. Peringatan Imunisasi Menunjukkan Status "Terlambat"
+   - Solusi: Ini terjadi jika usia balita telah melewati batas jadwal imunisasi. Admin Pos/Bidan perlu mengubah statusnya menjadi "Sudah" melalui menu Imunisasi jika anak tersebut baru saja disuntik.
+4. Terjadi Error saat Melakukan Restore Database
+   - Solusi: Pastikan file yang diunggah adalah berformat valid (.sql) dan merupakan file yang langsung dihasilkan oleh sistem Cempaka Sehat ini. Jika masalah berlanjut, hubungi teknisi.
+
+5.2 FAQ (Pertanyaan yang Sering Diajukan)
+Q: Siapa saja yang dapat mendaftarkan akun di sistem ini?
+A: Sistem menyediakan pendaftaran untuk umum bagi "Ibu Balita". Sedangkan untuk role "Admin Pos" dan "Bidan", harus ditetapkan/diberikan izin khusus oleh "Super Admin".
+
+Q: Apakah data balita saya bisa dilihat oleh ibu lain?
+A: Tidak. Sistem ini dilengkapi dengan Role-Based Access Control (RBAC). Ibu Balita hanya dapat melihat data anaknya sendiri, dan Admin Pos hanya bisa mengakses data di wilayah Posyandunya saja.
+
+Q: Bagaimana jika koneksi internet terputus saat memasukkan data?
+A: Data yang belum berhasil disimpan (sebelum klik tombol Simpan) perlu diisi ulang saat koneksi internet kembali stabil. Sistem ini memerlukan koneksi online ke server.
+
+
+BAB 6: LAMPIRAN
+-----------------------------------------
+6.1 Glosarium
+- RBAC: Role-Based Access Control, sistem pengaturan izin akses fungsi aplikasi berdasarkan perannya (misal: Super Admin vs Ibu).
+- KMS: Kartu Menuju Sehat, sarana mencatat dan memantau pertumbuhan balita.
+- Z-Score: Standar deviasi yang ditetapkan WHO untuk mengklasifikasikan status gizi anak (Gizi Buruk, Kurang, Baik, Lebih).
+- IDAI: Ikatan Dokter Anak Indonesia, instansi rujukan dalam penentuan jadwal vaksinasi.
+
+6.2 Kontak Dukungan
+Jika Anda mengalami kendala yang tidak tercantum dalam Troubleshooting atau memiliki pertanyaan lebih lanjut, silakan menghubungi:
+- WhatsApp Support: +62 812-XXXX-XXXX
+- Email: support@cempakasehat.id
+- Jam Layanan: Senin - Jumat (08.00 - 16.00 WIB)

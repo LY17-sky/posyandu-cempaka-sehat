@@ -1,0 +1,16 @@
+<?php
+$year = intval($_GET['year'] ?? date('Y'));
+$rows = fetch_all("SELECT DATE_FORMAT(tgl_timbang, '%m') AS month, COUNT(*) AS count FROM timbang WHERE YEAR(tgl_timbang) = {$year} GROUP BY DATE_FORMAT(tgl_timbang, '%m') ORDER BY month");
+$labels = [];
+$values = [];
+for ($m = 1; $m <= 12; $m++) {
+    $monthKey = str_pad($m, 2, '0', STR_PAD_LEFT);
+    $labels[] = $monthKey;
+    $values[$monthKey] = 0;
+}
+foreach ($rows as $row) {
+    $values[$row['month']] = intval($row['count']);
+}
+$result = ['labels' => array_keys($values), 'data' => array_values($values)];
+header('Content-Type: application/json');
+echo json_encode($result);
