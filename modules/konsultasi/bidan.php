@@ -6,7 +6,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $konsultasi) {
         flash('message', 'Token CSRF tidak valid.');
         redirect('index.php?module=konsultasi&page=bidan');
     }
-    $jawaban = escape($_POST['jawaban'] ?? '');
+    $jawaban = trim($_POST['jawaban'] ?? '');
     if ($jawaban !== '') {
         db()->update('konsultasi', [
             'jawaban' => $jawaban,

@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../../config/database.php';
+requireLogin();
 
 $bulan = $_GET['bulan'] ?? date('Y-m');
 if (!preg_match('/^\d{4}-\d{2}$/', $bulan)) {

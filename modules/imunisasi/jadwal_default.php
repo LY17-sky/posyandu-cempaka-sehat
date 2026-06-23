@@ -1,12 +1,14 @@
 <?php
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $nama = escape($_POST['nama'] ?? '');
-    $keterangan = escape($_POST['keterangan'] ?? '');
+    $nama = trim($_POST['nama'] ?? '');
+    $keterangan = trim($_POST['keterangan'] ?? '');
+    $tanggal = trim($_POST['tanggal'] ?? date('Y-m-d'));
+    $waktu = trim($_POST['waktu'] ?? '08:00');
     if ($nama !== '') {
         db()->insert('jadwal_posyandu', [
-            'tanggal' => date('Y-m-d'),
+            'tanggal' => $tanggal,
             'lokasi' => $nama,
-            'waktu' => '08:00:00',
+            'waktu' => $waktu,
             'catatan' => $keterangan
         ]);
         flash('message', 'Jadwal default posyandu disimpan.');

@@ -14,6 +14,16 @@ if ($isUserView) {
     }
 } else {
     $balitas = db()->select("SELECT id, nama, nama_ibu FROM balita WHERE is_active = 1" . getPosFilter() . " ORDER BY nama");
+    if (empty($balitas)) {
+        echo "<div class='card p-12 text-center bg-white/80 backdrop-blur-md rounded-2xl'><p class='text-indigo-300 font-bold'>Data balita tidak ditemukan</p></div>";
+        return;
+    }
+    $balita = null;
+    $id = intval($_GET['balita_id'] ?? ($balitas[0]['id'] ?? 0));
+    foreach ($balitas as $b) {
+        if ($b['id'] == $id) { $balita = $b; break; }
+    }
+    if (!$balita) $balita = $balitas[0] ?? null;
 }
 ?>
 
@@ -109,7 +119,7 @@ if ($isUserView) {
 document.addEventListener('DOMContentLoaded', function() {
     const ctx = document.getElementById('growthChart').getContext('2d');
     let chart = null;
-    let currentBalitaId = <?php echo $isUserView ? $balita['id'] : 0; ?>;
+    let currentBalitaId = <?php echo isset($balita['id']) ? intval($balita['id']) : 0; ?>;
     let currentPeriod = 'all';
     
     const colors = {
@@ -125,14 +135,19 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('loadingChart').classList.remove('hidden');
         if (document.getElementById('noDataMsg')) document.getElementById('noDataMsg').classList.add('hidden');
         
-        fetch(`modules/api/get_grafik.php?balita_id=${currentBalitaId}&period=${currentPeriod}`)
-            .then(response => response.json())
+        const apiUrl = `modules/api/get_grafik.php?balita_id=${currentBalitaId}&period=${currentPeriod}`;
+        
+        fetch(apiUrl)
+            .then(response => {
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                return response.json();
+            })
             .then(data => {
                 if (chart) chart.destroy();
                 
                 const datasets = [];
                 
-                if (document.getElementById('bbCheck').checked && data.bb.length > 0) {
+                if (document.getElementById('bbCheck').checked && data.bb && data.bb.length > 0) {
                     datasets.push({
                         label: 'Berat Badan (kg)',
                         data: data.bb,
@@ -148,7 +163,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     });
                 }
                 
-                if (document.getElementById('tbCheck').checked && data.tb.length > 0) {
+                if (document.getElementById('tbCheck').checked && data.tb && data.tb.length > 0) {
                     datasets.push({
                         label: 'Tinggi Badan (cm)',
                         data: data.tb,
@@ -164,7 +179,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     });
                 }
                 
-                if (document.getElementById('lkCheck').checked && data.lk.length > 0) {
+                if (document.getElementById('lkCheck').checked && data.lk && data.lk.length > 0) {
                     datasets.push({
                         label: 'Lingkar Kepala (cm)',
                         data: data.lk,
@@ -178,7 +193,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     });
                 }
                 
-                if (document.getElementById('lilaCheck').checked && data.lila.length > 0) {
+                if (document.getElementById('lilaCheck').checked && data.lila && data.lila.length > 0) {
                     datasets.push({
                         label: 'LILA (cm)',
                         data: data.lila,
@@ -195,7 +210,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 chart = new Chart(ctx, {
                     type: 'line',
                     data: {
-                        labels: data.labels,
+                        labels: data.labels || [],
                         datasets: datasets
                     },
                     options: {
@@ -222,9 +237,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                 callbacks: {
                                     afterLabel: function(context) {
                                         const index = context.dataIndex;
-                                        const status = data.status[index];
-                                        if (status) {
-                                            return 'Status: ' + status.status;
+                                        if (data.status && data.status[index]) {
+                                            return 'Status: ' + data.status[index];
                                         }
                                         return '';
                                     }
@@ -247,32 +261,43 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('loadingChart').classList.add('hidden');
             })
             .catch(error => {
+                console.error('Error loading chart:', error);
                 document.getElementById('loadingChart').classList.add('hidden');
+                alert('Gagal memuat data grafik: ' + error.message);
             });
     }
     
     <?php if (!$isUserView || count($balitas) > 1): ?>
     document.getElementById('balitaSelect').addEventListener('change', function() {
-        currentBalitaId = this.value;
-        loadChart();
+        if (this.value) {
+            currentBalitaId = parseInt(this.value);
+            loadChart();
+        }
     });
     <?php endif; ?>
     
     ['bbCheck', 'tbCheck', 'lkCheck', 'lilaCheck'].forEach(id => {
-        document.getElementById(id).addEventListener('change', loadChart);
+        const elem = document.getElementById(id);
+        if (elem) {
+            elem.addEventListener('change', loadChart);
+        }
     });
     
     ['btn3m', 'btn6m', 'btn1y', 'btnAll'].forEach(id => {
-        document.getElementById(id).addEventListener('click', function() {
-            ['btn3m', 'btn6m', 'btn1y', 'btnAll'].forEach(btnId => {
-                 document.getElementById(btnId).className = "px-3 py-2 text-xs font-black rounded-xl border-2 border-indigo-50 bg-white text-indigo-400 hover:border-indigo-100 transition-all";
+        const btn = document.getElementById(id);
+        if (btn) {
+            btn.addEventListener('click', function() {
+                ['btn3m', 'btn6m', 'btn1y', 'btnAll'].forEach(btnId => {
+                     const b = document.getElementById(btnId);
+                     if (b) b.className = "px-3 py-2 text-xs font-black rounded-xl border-2 border-indigo-50 bg-white text-indigo-400 hover:border-indigo-100 transition-all";
+                });
+                this.className = "px-3 py-2 text-xs font-black rounded-xl border-2 border-indigo-500 bg-indigo-500 text-white shadow-lg shadow-indigo-100 transition-all";
+                
+                const periodMap = { 'btn3m': '3m', 'btn6m': '6m', 'btn1y': '1year', 'btnAll': 'all' };
+                currentPeriod = periodMap[id] || 'all';
+                loadChart();
             });
-            this.className = "px-3 py-2 text-xs font-black rounded-xl border-2 border-indigo-500 bg-indigo-500 text-white shadow-lg shadow-indigo-100 transition-all";
-            
-            currentPeriod = id.replace('btn', '').toLowerCase();
-            if (currentPeriod === '1y') currentPeriod = '1year';
-            loadChart();
-        });
+        }
     });
     
     if (currentBalitaId) loadChart();

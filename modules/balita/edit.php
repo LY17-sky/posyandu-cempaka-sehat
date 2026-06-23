@@ -9,15 +9,15 @@ if (!$balita) {
         flash('message', 'Token CSRF tidak valid.');
         redirect('index.php?module=balita&page=daftar');
     }
-    $nama = escape($_POST['nama'] ?? '');
-    $nik = escape($_POST['nik'] ?? '');
-    $tanggal_lahir = escape($_POST['tanggal_lahir'] ?? '');
-    $jenis = escape($_POST['jenis_kelamin'] ?? 'L');
-    $alamat = escape($_POST['alamat'] ?? '');
-    $ibu = escape($_POST['ibu'] ?? '');
-    $nik_ibu = escape($_POST['nik_ibu'] ?? '');
-    $ayah = escape($_POST['ayah'] ?? '');
-    $no_telp = escape($_POST['no_telp'] ?? '');
+    $nama = trim($_POST['nama'] ?? '');
+    $nik = trim($_POST['nik'] ?? '');
+    $tanggal_lahir = trim($_POST['tanggal_lahir'] ?? '');
+    $jenis = trim($_POST['jenis_kelamin'] ?? 'L');
+    $alamat = trim($_POST['alamat'] ?? '');
+    $ibu = trim($_POST['ibu'] ?? '');
+    $nik_ibu = trim($_POST['nik_ibu'] ?? '');
+    $ayah = trim($_POST['ayah'] ?? '');
+    $no_telp = trim($_POST['no_telp'] ?? '');
     $id_pos = intval($_POST['id_pos'] ?? 1);
 
     db()->update('balita', [

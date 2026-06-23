@@ -1,10 +1,5 @@
 <?php
 $balitas = fetch_all("SELECT id, nama, nik, tgl_lahir, nama_ibu FROM balita WHERE is_active = 1" . getPosFilter() . " ORDER BY nama");
-
-function calculateZScore($value, $mean, $sd) {
-    if ($sd == 0) return 0;
-    return ($value - $mean) / $sd;
-}
 ?>
 
 <div class="card p-8 bg-white/80 backdrop-blur-md border-white/20 shadow-xl rounded-2xl relative overflow-hidden animate-fade-in">
@@ -127,7 +122,7 @@ function calculateZScore($value, $mean, $sd) {
                                     <p id="zLK" class="text-xl font-black text-white">-</p>
                                 </div>
                                 <div class="p-4 bg-white/5 rounded-2xl border border-white/5 text-center col-span-2">
-                                    <p class="text-[10px] font-black text-white/40 uppercase tracking-wider mb-1">LILA/U Z-Score</p>
+                                    <p class="text-[10px] font-black text-white/40 uppercase tracking-wider mb-1">LILA (cm)</p>
                                     <p id="zLILA" class="text-xl font-black text-white">-</p>
                                 </div>
                             </div>
@@ -200,7 +195,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 document.getElementById('zBB').textContent = data.z_scores.bb_u;
                 document.getElementById('zTB').textContent = data.z_scores.tb_u;
-                document.getElementById('zBBTB').textContent = data.z_scores.bb_tb;
+                document.getElementById('zBBTB').textContent = data.z_scores.bb_tb !== null ? data.z_scores.bb_tb : '-';
                 document.getElementById('zLK').textContent = data.z_scores.lk_u !== null ? data.z_scores.lk_u : '-';
                 document.getElementById('zLILA').textContent = data.z_scores.lila_u !== null ? data.z_scores.lila_u : '-';
             })

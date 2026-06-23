@@ -15,23 +15,65 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         flash('message', 'Reminder WhatsApp berhasil dikirim ke orang tua.');
         redirect('index.php?module=jadwal&page=posyandu');
     }
-    $tanggal = escape($_POST['tanggal'] ?? date('Y-m-d'));
-    $lokasi = escape($_POST['lokasi'] ?? '');
-    $waktu = escape($_POST['waktu'] ?? '');
-    $catatan = escape($_POST['catatan'] ?? '');
-    if ($lokasi !== '' && $waktu !== '') {
-        db()->insert('jadwal_posyandu', [
-            'tanggal' => $tanggal,
-            'lokasi' => $lokasi,
-            'waktu' => $waktu,
-            'catatan' => $catatan
-        ]);
-        flash('message', 'Jadwal posyandu baru berhasil ditambahkan.');
-        redirect('index.php?module=jadwal&page=posyandu');
+    
+    if (isset($_POST['edit_jadwal'])) {
+        if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+            flash('message', 'Token CSRF tidak valid.');
+            redirect('index.php?module=jadwal&page=posyandu');
+        }
+        if (!isAdmin() && !isAdminPos()) {
+            flash('message', 'Anda tidak memiliki akses.');
+            redirect('index.php?module=jadwal&page=posyandu');
+        }
+        $id = intval($_POST['id'] ?? 0);
+        $tanggal = trim($_POST['tanggal'] ?? date('Y-m-d'));
+        $lokasi = trim($_POST['lokasi'] ?? '');
+        $waktu = trim($_POST['waktu'] ?? '');
+        $catatan = trim($_POST['catatan'] ?? '');
+        
+        if ($id > 0 && $lokasi !== '' && $waktu !== '') {
+            db()->update('jadwal_posyandu', [
+                'tanggal' => $tanggal,
+                'lokasi' => $lokasi,
+                'waktu' => $waktu,
+                'catatan' => $catatan
+            ], 'id = ?', [$id]);
+            flash('message', 'Jadwal berhasil diperbarui.');
+            redirect('index.php?module=jadwal&page=posyandu');
+        }
+    }
+    
+    if (!isset($_POST['kirim_reminder']) && !isset($_POST['edit_jadwal'])) {
+        if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+            flash('message', 'Token CSRF tidak valid.');
+            redirect('index.php?module=jadwal&page=posyandu');
+        }
+        $tanggal = trim($_POST['tanggal'] ?? date('Y-m-d'));
+        $lokasi = trim($_POST['lokasi'] ?? '');
+        $waktu = trim($_POST['waktu'] ?? '');
+        $catatan = trim($_POST['catatan'] ?? '');
+        if ($lokasi !== '' && $waktu !== '') {
+            db()->insert('jadwal_posyandu', [
+                'tanggal' => $tanggal,
+                'lokasi' => $lokasi,
+                'waktu' => $waktu,
+                'catatan' => $catatan
+            ]);
+            flash('message', 'Jadwal posyandu baru berhasil ditambahkan.');
+            redirect('index.php?module=jadwal&page=posyandu');
+        }
     }
 }
+
 $jadwal = fetch_all('SELECT * FROM jadwal_posyandu ORDER BY tanggal DESC');
 $message = flash('message');
+
+// Get edit data if exists
+$editData = null;
+$editId = intval($_GET['edit'] ?? 0);
+if ($editId > 0 && (isAdmin() || isAdminPos())) {
+    $editData = db()->selectOne('SELECT * FROM jadwal_posyandu WHERE id = ?', [$editId]);
+}
 ?>
 
 <div class="card p-8 bg-white/80 backdrop-blur-md border-white/20 shadow-xl rounded-2xl relative overflow-hidden">
@@ -70,32 +112,48 @@ $message = flash('message');
 
         <?php if (isAdmin() || isAdminPos()): ?>
         <div class="bg-white/40 p-6 rounded-2xl border border-indigo-50 mb-8 backdrop-blur-sm">
-            <h4 class="text-sm font-bold text-indigo-950 mb-4 uppercase tracking-wider">Tambah Jadwal Baru</h4>
+            <h4 class="text-sm font-bold text-indigo-950 mb-4 uppercase tracking-wider">
+                <?php echo $editData ? 'Edit Jadwal' : 'Tambah Jadwal Baru'; ?>
+            </h4>
             <form method="post" class="grid gap-6 md:grid-cols-4">
+                <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
+                <?php if ($editData): ?>
+                    <input type="hidden" name="edit_jadwal" value="1">
+                    <input type="hidden" name="id" value="<?php echo $editData['id']; ?>">
+                <?php endif; ?>
+                
                 <label class="block">
                     <span class="text-xs font-bold text-indigo-900 ml-1 uppercase">Tanggal</span>
-                    <input type="date" name="tanggal" value="<?php echo date('Y-m-d'); ?>" 
+                    <input type="date" name="tanggal" value="<?php echo $editData ? $editData['tanggal'] : date('Y-m-d'); ?>" 
                            class="mt-1.5 block w-full rounded-xl border-indigo-100 bg-white px-4 py-2.5 text-indigo-900 focus:border-pink-400 focus:ring-pink-400/20 transition-all outline-none border-2" />
                 </label>
                 <label class="block">
                     <span class="text-xs font-bold text-indigo-900 ml-1 uppercase">Lokasi</span>
                     <input type="text" name="lokasi" required placeholder="Contoh: Balai Desa"
+                           value="<?php echo $editData ? sanitize($editData['lokasi']) : ''; ?>"
                            class="mt-1.5 block w-full rounded-xl border-indigo-100 bg-white px-4 py-2.5 text-indigo-900 focus:border-pink-400 focus:ring-pink-400/20 transition-all outline-none border-2" />
                 </label>
                 <label class="block">
                     <span class="text-xs font-bold text-indigo-900 ml-1 uppercase">Waktu</span>
                     <input type="text" name="waktu" required placeholder="Contoh: 08:00 atau 08:00-11:00"
+                           value="<?php echo $editData ? sanitize($editData['waktu']) : ''; ?>"
                            class="mt-1.5 block w-full rounded-xl border-indigo-100 bg-white px-4 py-2.5 text-indigo-900 focus:border-pink-400 focus:ring-pink-400/20 transition-all outline-none border-2" />
                 </label>
                 <label class="block">
                     <span class="text-xs font-bold text-indigo-900 ml-1 uppercase">Catatan</span>
                     <input type="text" name="catatan" placeholder="Opsional"
+                           value="<?php echo $editData ? sanitize($editData['catatan']) : ''; ?>"
                            class="mt-1.5 block w-full rounded-xl border-indigo-100 bg-white px-4 py-2.5 text-indigo-900 focus:border-pink-400 focus:ring-pink-400/20 transition-all outline-none border-2" />
                 </label>
-                <div class="md:col-span-4">
-                    <button type="submit" class="w-full bg-gradient-to-r from-indigo-500 to-pink-500 text-white font-bold py-3 px-6 rounded-xl shadow-lg shadow-indigo-100 hover:scale-[1.01] active:scale-95 transition-all">
-                        Simpan Jadwal Kegiatan
+                <div class="md:col-span-4 flex gap-3">
+                    <button type="submit" class="flex-1 bg-gradient-to-r from-indigo-500 to-pink-500 text-white font-bold py-3 px-6 rounded-xl shadow-lg shadow-indigo-100 hover:scale-[1.01] active:scale-95 transition-all">
+                        <?php echo $editData ? 'Perbarui Jadwal' : 'Simpan Jadwal Kegiatan'; ?>
                     </button>
+                    <?php if ($editData): ?>
+                    <a href="index.php?module=jadwal&page=posyandu" class="flex items-center justify-center bg-slate-200 text-slate-700 font-bold py-3 px-6 rounded-xl hover:bg-slate-300 transition-all">
+                        Batal
+                    </a>
+                    <?php endif; ?>
                 </div>
             </form>
         </div>
@@ -109,12 +167,15 @@ $message = flash('message');
                         <th class="px-6 py-4 text-left font-bold uppercase tracking-wider">Lokasi</th>
                         <th class="px-6 py-4 text-left font-bold uppercase tracking-wider">Waktu</th>
                         <th class="px-6 py-4 text-left font-bold uppercase tracking-wider">Catatan</th>
+                        <?php if (isAdmin() || isAdminPos()): ?>
+                        <th class="px-6 py-4 text-center font-bold uppercase tracking-wider">Aksi</th>
+                        <?php endif; ?>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-indigo-50">
                     <?php if (count($jadwal) === 0): ?>
                         <tr>
-                            <td colspan="4" class="px-6 py-20 text-center text-indigo-300 font-medium">Belum ada jadwal posyandu.</td>
+                            <td colspan="<?php echo (isAdmin() || isAdminPos()) ? '5' : '4'; ?>" class="px-6 py-20 text-center text-indigo-300 font-medium">Belum ada jadwal posyandu.</td>
                         </tr>
                     <?php endif; ?>
                     <?php foreach ($jadwal as $row): ?>
@@ -133,6 +194,15 @@ $message = flash('message');
                                 <span class="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-lg font-bold text-xs"><?php echo sanitize($row['waktu']); ?></span>
                             </td>
                             <td class="px-6 py-4 text-indigo-500 italic"><?php echo sanitize($row['catatan'] ?: '-'); ?></td>
+                            <?php if (isAdmin() || isAdminPos()): ?>
+                            <td class="px-6 py-4 text-center">
+                                <a href="index.php?module=jadwal&page=posyandu&edit=<?php echo $row['id']; ?>" 
+                                   class="inline-flex items-center gap-1 bg-blue-100 text-blue-600 px-3 py-1.5 rounded-lg font-bold text-xs hover:bg-blue-600 hover:text-white transition-all">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                    Edit
+                                </a>
+                            </td>
+                            <?php endif; ?>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>

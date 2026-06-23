@@ -1,76 +1,116 @@
 <?php
+require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../helpers/notifikasi.php';
+requireLogin();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
-        die('CSRF token invalid');
+        error_log('CSRF Token gagal');
+        echo "<script>
+        Swal.fire({icon:'error',title:'Gagal',text:'Token keamanan tidak valid.'});
+        </script>";
+        echo "<div class='card p-8'><p class='text-red-500'>Token keamanan tidak valid.</p></div>";
+        exit;
     }
     
     $balita_id = intval($_POST['balita_id'] ?? 0);
-    $bb = floatval($_POST['bb'] ?? 0);
-    $tb = floatval($_POST['tb'] ?? 0);
-    $lk = floatval($_POST['lk'] ?? 0);
-    $lila = floatval($_POST['lila'] ?? 0);
-    $tgl_timbang = $_POST['tgl_timbang'] ?? date('Y-m-d');
+    $bbInput   = trim($_POST['bb'] ?? '');
+    $tbInput   = trim($_POST['tb'] ?? '');
+    $lkInput   = trim($_POST['lk'] ?? '');
+    $lilaInput = trim($_POST['lila'] ?? '');
+    $tgl_timbang = trim($_POST['tgl_timbang'] ?? date('Y-m-d'));
+    
+    // Server-side validation
+    $bb  = floatval(str_replace(',', '.', $bbInput));
+    $tb  = floatval(str_replace(',', '.', $tbInput));
+
+    $errors = [];
+    if ($balita_id <= 0)   $errors[] = 'Silakan pilih balita terlebih dahulu.';
+    if ($bb <= 0 || $bb > 50)  $errors[] = 'Berat badan harus antara 0.1 - 50 kg.';
+    if ($tb <= 0 || $tb > 200) $errors[] = 'Tinggi badan harus antara 0.1 - 200 cm.';
+
+    if (!empty($errors)) {
+        error_log('Input validation error: ' . implode(', ', $errors));
+        echo "<script>
+        Swal.fire({icon:'error',title:'Data Tidak Valid',text:'" . addslashes($errors[0]) . "'});
+        </script>";
+        echo "<div class='card p-8'><p class='text-red-500'>" . htmlspecialchars($errors[0]) . "</p></div>";
+        exit;
+    }
+    
+    $lk   = floatval(str_replace(',', '.', $lkInput));
+    $lila = floatval(str_replace(',', '.', $lilaInput));
     
     if ($balita_id > 0 && $bb > 0 && $tb > 0) {
-        db()->insert('timbang', [
-            'balita_id' => $balita_id,
-            'bb' => $bb,
-            'tb' => $tb,
-            'lk' => $lk,
-            'lila' => $lila,
+        $success = db()->insert('timbang', [
+            'balita_id'   => $balita_id,
+            'bb'          => $bb,
+            'tb'          => $tb,
+            'lk'          => $lk,
+            'lila'        => $lila,
             'tgl_timbang' => $tgl_timbang
         ]);
         
+        if (!$success) {
+            error_log('DB insert failed for balita_id=' . $balita_id);
+            echo "<script>
+            Swal.fire({icon:'error',title:'Gagal',text:'Gagal menyimpan data penimbangan. Silakan coba lagi.'});
+            </script>";
+            echo "<div class='card p-8'><p class='text-red-500'>Gagal menyimpan data.</p></div>";
+            exit;
+        }
+        
         $balita = fetch_one("SELECT tgl_lahir FROM balita WHERE id = ?", [$balita_id]);
-        $whoColor = 'Biru';
-        $whoStatus = 'Normal';
-        $whoRekomendasi = 'Pertumbuhan normal';
+        $whoColor     = 'Biru';
+        $whoStatus    = 'Normal';
+        $whoRekomendasi = 'Pertumbuhan dalam batas normal, lanjutkan pola asuh yang baik';
         
         if ($balita && $balita['tgl_lahir']) {
             $birthDate = new DateTime($balita['tgl_lahir']);
-            $now = new DateTime($tgl_timbang);
-            $ageMonths = (int)$birthDate->diff($now)->format('%m') + ($birthDate->diff($now)->format('%y') * 12);
+            $now       = new DateTime($tgl_timbang);
+            $ageMonths = (int)$birthDate->diff($now)->format('%y') * 12 + (int)$birthDate->diff($now)->format('%m');
             
-            require_once __DIR__ . '/../../modules/api/who_status.php';
-            $whoResult = getWHOStatus($bb, $tb, $lk, $lila, $ageMonths);
-            $whoColor = $whoResult['color'];
-            $whoStatus = $whoResult['status'];
+            require_once __DIR__ . '/../api/who_status.php';
+            $whoResult = getWHOStatus($bb, $tb, $lk, $lila, $ageMonths, $balita['jenis_kelamin'] ?? 'L');
+            $whoColor     = $whoResult['color'];
+            $whoStatus    = $whoResult['status'];
             $whoRekomendasi = $whoResult['rekomendasi'];
         }
         
+        error_log('WHO result: color=' . $whoColor . ' status=' . $whoStatus);
+        
+        // Kirim WA untuk semua penimbangan
         waTimbangSelesai($balita_id, $bb, $tb, $tgl_timbang);
         
+        // Kirim WA tambahan jika status gizi abnormal
         if ($whoColor !== 'Biru') {
             waWHOAbnormal($balita_id, $whoStatus, $whoRekomendasi, $bb, $tb);
         }
         
-        echo "<script>
-        Swal.fire({
-            icon: 'success',
-            title: 'Berhasil!',
-            text: 'Data penimbangan berhasil disimpan',
-            showConfirmButton: false,
-            timer: 1500
-        }).then(() => {
-            window.location.href = 'index.php?module=timbang&page=riwayat&balita_id=" . $balita_id . "';
-        });
-        </script>";
-    } else {
-        echo "<script>
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'Data tidak valid'
-        });
-        </script>";
+        flash('message', 'Data penimbangan berhasil disimpan.');
+        header('Location: index.php?module=timbang&page=riwayat&balita_id=' . $balita_id);
+        exit;
     }
+    
+    echo "<script>
+    Swal.fire({icon:'error',title:'Error',text:'Data tidak valid'});
+    </script>";
+    echo "<div class='card p-8'><p class='text-red-500'>Data tidak valid.</p></div>";
+    exit;
+}
+
+if (isUserView()) {
+    $balitas = getMotherBalitas();
+    if (empty($balitas)) {
+        echo "<div class='card p-12 text-center bg-white/80 backdrop-blur-md rounded-2xl'><p class='text-indigo-300 font-bold'>Data balita tidak ditemukan.</p></div>";
+        return;
+    }
+} else {
+    $balitas = fetch_all("SELECT id, nama, nama_ibu, tgl_lahir FROM balita WHERE is_active = 1" . getPosFilter() . " ORDER BY nama");
 }
 ?>
 
 <div class="card p-8 bg-white/80 backdrop-blur-md border-white/20 shadow-xl rounded-2xl relative overflow-hidden animate-fade-in">
-    <!-- Decorative Glow -->
     <div class="absolute -top-24 -right-24 w-48 h-48 bg-blue-200/20 rounded-full blur-3xl pointer-events-none"></div>
     <div class="absolute -bottom-24 -left-24 w-48 h-48 bg-pink-200/20 rounded-full blur-3xl pointer-events-none"></div>
 
@@ -89,7 +129,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <!-- Pemilihan Balita -->
                 <div class="space-y-6">
                     <div class="md:col-span-2">
                         <h4 class="text-xs font-bold uppercase tracking-wider text-pink-500 mb-4 flex items-center gap-2">
@@ -98,16 +137,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </h4>
                     </div>
                     
-                    <div class="relative">
+                    <div>
                         <label class="block text-sm font-semibold text-indigo-900 ml-1 mb-2">Pilih Balita</label>
                         <select name="balita_id" id="balitaSelect" required class="w-full"></select>
                     </div>
 
                     <div id="balitaInfo" class="hidden animate-fade-in">
                         <div class="p-5 bg-gradient-to-br from-indigo-50 to-blue-50 rounded-2xl border border-indigo-100 flex items-center gap-4">
-                            <div id="balitaAvatar" class="w-12 h-12 rounded-full bg-white flex items-center justify-center text-indigo-500 shadow-sm font-bold text-lg">
-                                <!-- Initial -->
-                            </div>
+                            <div id="balitaAvatar" class="w-12 h-12 rounded-full bg-white flex items-center justify-center text-indigo-500 shadow-sm font-bold text-lg"></div>
                             <div>
                                 <h3 id="balitaName" class="font-bold text-indigo-950"></h3>
                                 <p id="balitaDetails" class="text-xs text-indigo-400"></p>
@@ -122,7 +159,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                 </div>
 
-                <!-- Data Fisik -->
                 <div class="space-y-6">
                     <div class="md:col-span-2">
                         <h4 class="text-xs font-bold uppercase tracking-wider text-blue-500 mb-4 flex items-center gap-2">
@@ -134,12 +170,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="grid grid-cols-2 gap-4">
                         <label class="block">
                             <span class="text-sm font-semibold text-indigo-900 ml-1">Berat Badan (kg)</span>
-                            <input type="number" name="bb" id="bb" step="0.1" min="0" required placeholder="0.0"
+                            <input type="number" name="bb" id="bb" step="0.1" min="0.1" max="50" required placeholder="0.0"
                                    class="mt-2 block w-full rounded-xl border-indigo-100 bg-indigo-50/30 px-4 py-3 text-indigo-900 focus:border-pink-400 focus:ring-pink-400/20 transition-all outline-none border-2 font-bold text-lg">
                         </label>
                         <label class="block">
                             <span class="text-sm font-semibold text-indigo-900 ml-1">Tinggi Badan (cm)</span>
-                            <input type="number" name="tb" id="tb" step="0.1" min="0" required placeholder="0.0"
+                            <input type="number" name="tb" id="tb" step="0.1" min="0.1" max="200" required placeholder="0.0"
                                    class="mt-2 block w-full rounded-xl border-indigo-100 bg-indigo-50/30 px-4 py-3 text-indigo-900 focus:border-pink-400 focus:ring-pink-400/20 transition-all outline-none border-2 font-bold text-lg">
                         </label>
                     </div>
@@ -157,7 +193,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </label>
                     </div>
 
-                    <!-- WHO Status Result Card -->
                     <div id="whoResult" class="hidden animate-fade-in">
                         <div class="p-6 rounded-2xl border-2 border-dashed border-indigo-100 bg-white/50">
                             <div class="flex items-center justify-between mb-4">
@@ -190,7 +225,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 document.addEventListener('DOMContentLoaded', function() {
     let selectedBalitaId = 0;
     
-    // Initialize Select2 for balita selection
     $('#balitaSelect').select2({
         placeholder: 'Ketik nama balita atau NIK...',
         ajax: {
@@ -201,12 +235,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 return { q: params.term };
             },
             processResults: function (data) {
+                if (!Array.isArray(data)) {
+                    console.warn('get_balita.php tidak mengembalikan array:', data);
+                    return { results: [] };
+                }
                 return {
                     results: data.map(function(item) {
                         return {
-                            id: item.id,
-                            text: item.nama + ' (Ibu: ' + item.nama_ibu + ')',
-                            data: item
+                            id:    item.id,
+                            text:  (item.nama || '') + ' (' + (item.nama_ibu || '-') + ')',
+                            data:  item
                         };
                     })
                 };
@@ -219,20 +257,30 @@ document.addEventListener('DOMContentLoaded', function() {
     $('#balitaSelect').on('select2:select', function (e) {
         const data = e.params.data.data;
         selectedBalitaId = data.id;
-        $('#balitaName').text(data.nama);
-        $('#balitaAvatar').text(data.nama.charAt(0).toUpperCase());
+        $('#balitaName').text(data.nama || '');
+        $('#balitaAvatar').text((data.nama || '').charAt(0).toUpperCase());
         $('#balitaDetails').text('NIK: ' + (data.nik || '-') + ' | Lahir: ' + new Date(data.tgl_lahir).toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'}));
         $('#balitaInfo').removeClass('hidden');
         checkWHOStatus();
     });
+
+    $('#balitaSelect').on('select2:unselecting', function () {
+        selectedBalitaId = 0;
+        $('#balitaInfo').addClass('hidden');
+        $('#whoResult').addClass('hidden');
+        $('#bb').val('');
+        $('#tb').val('');
+        $('#lk').val('');
+        $('#lila').val('');
+    });
     
     function checkWHOStatus() {
-        const bb = parseFloat($('#bb').val());
-        const tb = parseFloat($('#tb').val());
-        const lk = parseFloat($('#lk').val()) || 0;
+        const bb   = parseFloat($('#bb').val());
+        const tb   = parseFloat($('#tb').val());
+        const lk   = parseFloat($('#lk').val()) || 0;
         const lila = parseFloat($('#lila').val()) || 0;
         
-        if (selectedBalitaId > 0 && bb > 0 && tb > 0) {
+        if (selectedBalitaId > 0 && bb > 0 && tb > 0 && $('#bb').val() && $('#tb').val()) {
             $.get('modules/api/who_status.php', {
                 balita_id: selectedBalitaId,
                 bb: bb,
@@ -240,26 +288,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 lk: lk,
                 lila: lila
             }, function(data) {
-                if (!data.error) {
-                    $('#whoResult').removeClass('hidden');
-                    $('#statusText').text(data.status);
-                    $('#rekomendasiText').text(data.rekomendasi);
-                    
-                    const badge = $('#statusBadge');
-                    if (data.color === 'Merah') {
-                         badge.removeClass('bg-yellow-100 text-yellow-600 bg-blue-100 text-blue-600').addClass('bg-red-100 text-red-600').text('Risiko Tinggi');
-                         $('#statusText').addClass('text-red-600').removeClass('text-indigo-950');
-                     } else if (data.color === 'Kuning') {
-                         badge.removeClass('bg-red-100 text-red-600 bg-blue-100 text-blue-600').addClass('bg-yellow-100 text-yellow-600').text('Waspada');
-                         $('#statusText').removeClass('text-red-600 text-indigo-950').addClass('text-yellow-600');
-                     } else {
-                         badge.removeClass('bg-red-100 text-red-600 bg-yellow-100 text-yellow-600').addClass('bg-blue-100 text-blue-600').text('Normal');
-                         $('#statusText').removeClass('text-red-600 text-yellow-600').addClass('text-indigo-950');
-                     }
-                } else {
+                if (!data || data.error) {
                     $('#whoResult').addClass('hidden');
+                    return;
                 }
-            }).fail(function() {
+                $('#whoResult').removeClass('hidden');
+                $('#statusText').text(data.status || '');
+                $('#rekomendasiText').text(data.rekomendasi || '');
+                
+                const badge = $('#statusBadge');
+                if (data.color === 'Merah') {
+                     badge.removeClass('bg-yellow-100 text-yellow-600 bg-blue-100 text-blue-600').addClass('bg-red-100 text-red-600').text('Risiko Tinggi');
+                     $('#statusText').addClass('text-red-600').removeClass('text-indigo-950');
+                 } else if (data.color === 'Kuning') {
+                     badge.removeClass('bg-red-100 text-red-600 bg-blue-100 text-blue-600').addClass('bg-yellow-100 text-yellow-600').text('Waspada');
+                     $('#statusText').removeClass('text-red-600 text-indigo-950').addClass('text-yellow-600');
+                 } else {
+                     badge.removeClass('bg-red-100 text-red-600 bg-yellow-100 text-yellow-600').addClass('bg-blue-100 text-blue-600').text('Normal');
+                     $('#statusText').removeClass('text-red-600 text-yellow-600').addClass('text-indigo-950');
+                 }
+            }).fail(function(xhr, status, error) {
+                console.warn('WHO status request failed:', status, error);
                 $('#whoResult').addClass('hidden');
             });
         } else {
@@ -277,16 +326,25 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (bb <= 0 || bb > 50) {
             e.preventDefault();
-            Swal.fire({ icon: 'error', title: 'Data Tidak Valid', text: 'Berat badan harus antara 0.1 - 50 kg' });
+            Swal.fire({icon:'error',title:'Data Tidak Valid',text:'Berat badan harus antara 0.1 - 50 kg'});
+            document.querySelector('[name="bb"]').focus();
             return;
         }
         
         if (tb <= 0 || tb > 200) {
             e.preventDefault();
-            Swal.fire({ icon: 'error', title: 'Data Tidak Valid', text: 'Tinggi badan harus antara 0.1 - 200 cm' });
+            Swal.fire({icon:'error',title:'Data Tidak Valid',text:'Tinggi badan harus antara 0.1 - 200 cm'});
+            document.querySelector('[name="tb"]').focus();
             return;
         }
-        
+
+        if (selectedBalitaId === 0 || !$('#balitaSelect').val()) {
+            e.preventDefault();
+            Swal.fire({icon:'warning',title:'Belum Memilih Balita',text:'Silakan pilih balita terlebih dahulu sebelum menyimpan.'});
+            $('#balitaSelect').select2('open');
+            return;
+        }
+
         document.getElementById('submitText').classList.add('opacity-0');
         document.getElementById('loadingSpinner').classList.remove('hidden');
     });

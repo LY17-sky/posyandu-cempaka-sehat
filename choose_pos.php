@@ -16,15 +16,29 @@ if ($isAdminPos || $isUserView) {
     }
 }
 
-$posList = [
-    1 => 'Cempaka I',
-    2 => 'Cempaka II',
-    3 => 'Cempaka III',
-    4 => 'Cempaka IV',
-    5 => 'Cempaka V'
-];
+// Get pos from database or use hardcoded fallback
+$posList = [];
+try {
+    $posData = db()->select('SELECT id, nama FROM pos_cempaka ORDER BY id ASC');
+    foreach ($posData as $pos) {
+        $posList[$pos['id']] = $pos['nama'];
+    }
+} catch (Exception $e) {
+    // Fallback to hardcoded pos if table doesn't exist yet
+    $posList = [
+        1 => 'Cempaka I',
+        2 => 'Cempaka II',
+        3 => 'Cempaka III',
+        4 => 'Cempaka IV',
+        5 => 'Cempaka V'
+    ];
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+        echo json_encode(['success' => false, 'message' => 'Token CSRF tidak valid']);
+        exit;
+    }
     $pos_id = intval($_POST['pos_id'] ?? 0);
     
     if ($id_pos > 0 && $pos_id !== $id_pos) {
@@ -117,6 +131,7 @@ $accessiblePos = $id_pos === 0 ? $posList : [$id_pos => $posList[$id_pos]];
         if (result.isConfirmed) {
             const formData = new FormData();
             formData.append('pos_id', posId);
+            formData.append('csrf_token', '<?php echo generateCSRFToken(); ?>');
             
             const response = await fetch('choose_pos.php', {
                 method: 'POST',

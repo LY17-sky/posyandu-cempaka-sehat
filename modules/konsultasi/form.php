@@ -6,8 +6,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect('index.php?module=konsultasi&page=form');
     }
     $balita_id = intval($_POST['balita_id'] ?? 0);
-    $nama_pengirim = escape($_POST['nama_pengirim'] ?? '');
-    $pertanyaan = escape($_POST['pertanyaan'] ?? '');
+    $nama_pengirim = trim($_POST['nama_pengirim'] ?? '');
+    $pertanyaan = trim($_POST['pertanyaan'] ?? '');
     if ($nama_pengirim !== '' && $pertanyaan !== '') {
         db()->insert('konsultasi', [
             'balita_id' => $balita_id ?: null,
@@ -61,7 +61,7 @@ $message = flash('message');
                 <div class="space-y-2">
                     <label class="block text-xs font-black text-indigo-900 ml-1 uppercase tracking-widest">Nama Pengirim</label>
                     <input type="text" name="nama_pengirim" required placeholder="Masukkan nama Anda..."
-                           value="<?php echo sanitize($_SESSION['username'] ?? ''); ?>"
+                           value="<?php echo sanitize($user['username'] ?? ''); ?>"
                            class="block w-full rounded-2xl border-indigo-100 bg-indigo-50/30 px-5 py-4 text-indigo-950 focus:border-pink-400 focus:ring-pink-400/20 transition-all outline-none border-2 font-bold">
                 </div>
             </div>

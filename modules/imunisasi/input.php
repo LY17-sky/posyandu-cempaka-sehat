@@ -6,9 +6,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect('index.php?module=imunisasi&page=jadwal');
     }
     $balita_id = intval($_POST['balita_id'] ?? 0);
-    $jenis_imunisasi = escape($_POST['nama_imunisasi'] ?? '');
-    $tanggal = escape($_POST['tanggal'] ?? date('Y-m-d'));
-    $status = escape($_POST['status'] ?? 'sudah');
+    $jenis_imunisasi = trim($_POST['nama_imunisasi'] ?? '');
+    $tanggal = trim($_POST['tanggal'] ?? date('Y-m-d'));
+    $status = trim($_POST['status'] ?? 'sudah');
 
     if ($balita_id > 0 && $jenis_imunisasi !== '') {
         db()->insert('imunisasi', [

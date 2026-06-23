@@ -106,6 +106,9 @@ class Database {
             id_pos INTEGER DEFAULT 1,
             is_active INTEGER DEFAULT 1,
             nik_ibu VARCHAR(16),
+            jenis_kelamin CHAR(1) DEFAULT 'L',
+            bb_lahir DECIMAL(5,2) DEFAULT NULL,
+            tb_lahir DECIMAL(5,2) DEFAULT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )");
 
@@ -129,6 +132,7 @@ class Database {
             no_telp VARCHAR(15),
             id_pos INTEGER DEFAULT 0,
             balita_id INTEGER,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (balita_id) REFERENCES balita(id)
         )");
 
@@ -178,34 +182,35 @@ class Database {
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )");
 
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS pos_cempaka (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nama VARCHAR(100) NOT NULL UNIQUE,
+            lokasi VARCHAR(255),
+            kontak VARCHAR(20),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )");
+
+        // Seed default pos data if empty
+        $posCount = $this->selectOne('SELECT COUNT(*) as count FROM pos_cempaka');
+        if (!$posCount || intval($posCount['count']) === 0) {
+            $this->insert('pos_cempaka', ['nama' => 'Cempaka I', 'lokasi' => 'Lokasi I', 'kontak' => '']);
+            $this->insert('pos_cempaka', ['nama' => 'Cempaka II', 'lokasi' => 'Lokasi II', 'kontak' => '']);
+            $this->insert('pos_cempaka', ['nama' => 'Cempaka III', 'lokasi' => 'Lokasi III', 'kontak' => '']);
+            $this->insert('pos_cempaka', ['nama' => 'Cempaka IV', 'lokasi' => 'Lokasi IV', 'kontak' => '']);
+            $this->insert('pos_cempaka', ['nama' => 'Cempaka V', 'lokasi' => 'Lokasi V', 'kontak' => '']);
+        }
+
         $row = $this->selectOne('SELECT COUNT(*) as count FROM balita');
         if (!$row || intval($row['count']) === 0) {
             $this->seedDemoData();
         }
         
-        try {
-            $this->pdo->exec("ALTER TABLE balita ADD COLUMN jenis_kelamin CHAR(1) DEFAULT 'L'");
-        } catch (Exception $e) {
-        }
-        
-        try {
-            $this->pdo->exec("ALTER TABLE balita ADD COLUMN id_pos INTEGER DEFAULT 1");
-        } catch (Exception $e) {
-        }
-        
-        try {
-            $this->pdo->exec("ALTER TABLE users ADD COLUMN id_pos INTEGER DEFAULT 0");
-        } catch (Exception $e) {
-        }
-        
-        try {
-            $this->pdo->exec("ALTER TABLE balita ADD COLUMN bb_lahir DECIMAL(5,2) DEFAULT NULL");
-        } catch (Exception $e) {
-        }
-        
-        try {
-            $this->pdo->exec("ALTER TABLE balita ADD COLUMN tb_lahir DECIMAL(5,2) DEFAULT NULL");
-        } catch (Exception $e) {
+        // Migration untuk database lama — aman dijalankan meski kolom sudah ada
+        foreach (['jenis_kelamin', 'bb_lahir', 'tb_lahir'] as $col) {
+            try {
+                $this->pdo->exec("ALTER TABLE balita ADD COLUMN $col TEXT");
+            } catch (Exception $e) {
+            }
         }
     }
 
@@ -216,6 +221,7 @@ class Database {
             'tgl_lahir' => '2020-01-15',
             'nama_ayah' => 'Rahman',
             'nama_ibu' => 'Siti',
+            'nik_ibu' => '1234567890123456',
             'no_telp' => '081234567890',
             'alamat' => 'Jl. Sudirman No. 1',
             'id_pos' => 1
@@ -226,6 +232,7 @@ class Database {
             'tgl_lahir' => '2019-05-20',
             'nama_ayah' => 'Sari',
             'nama_ibu' => 'Maya',
+            'nik_ibu' => '1234567890123457',
             'no_telp' => '081234567891',
             'alamat' => 'Jl. Thamrin No. 2',
             'id_pos' => 2
@@ -236,6 +243,7 @@ class Database {
             'tgl_lahir' => '2021-03-10',
             'nama_ayah' => 'Santoso',
             'nama_ibu' => 'Ani',
+            'nik_ibu' => '1234567890123458',
             'no_telp' => '081234567892',
             'alamat' => 'Jl. Gajah Mada No. 3',
             'id_pos' => 3
@@ -447,18 +455,6 @@ function checkBalitaAccess($balita_id) {
     return false;
 }
 
-function isUser() {
-    $user = getCurrentUser();
-    return $user && $user['role'] === 'user_view';
-}
-
-function getUserBalita() {
-    $user = getCurrentUser();
-    if (!$user || $user['role'] !== 'user_view') return null;
-    $children = db()->select('SELECT * FROM balita WHERE nik_ibu = ? AND is_active = 1', [getUserNik()]);
-    return $children[0] ?? null;
-}
-
 function getMotherBalitas() {
     $user = getCurrentUser();
     if (!$user || $user['role'] !== 'user_view') return [];
@@ -633,7 +629,9 @@ function getStatusGiziByAge($bb, $tb, $lk, $lila, $ageMonths, $gender = 'L') {
         'z_scores' => [
             'bb_u' => round($bbZ, 2),
             'tb_u' => round($tbZ, 2),
+            'bb_tb' => null,
             'lk_u' => $lk > 0 ? round($lkZ, 2) : null,
+            'lila_u' => $lila > 0 ? round($lila, 1) : null,
         ]
     ];
 }

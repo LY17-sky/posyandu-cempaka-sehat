@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../../config/database.php';
+requireLogin();
 
 $bulan = $_GET['bulan'] ?? date('Y-m');
 if (!preg_match('/^\d{4}-\d{2}$/', $bulan)) {
@@ -162,7 +163,7 @@ if (isset($_GET['download'])) {
     <body>
         <div class="header">
             <div class="logo-section">
-                <img src="../../assets/img/logo_anak.png" alt="Logo" class="logo">
+                <img src="assets/img/logo_anak.png" alt="Logo" class="logo">
                 <div class="title-section">
                     <h1>LAPORAN PENIMBANGAN</h1>
                     <p><?php echo $posNama; ?></p>

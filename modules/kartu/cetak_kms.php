@@ -245,18 +245,18 @@ document.addEventListener('DOMContentLoaded', function() {
                     tension: 0.4,
                     type: 'line'
                 },
-                {
-                    label: 'Berat Badan Anak',
-                    data: actualData,
-                    borderColor: themeColor,
-                    backgroundColor: themeColor,
-                    borderWidth: 3,
-                    pointRadius: 5,
-                    pointHoverRadius: 7,
-                    fill: false,
-                    type: 'line',
-                    showLine: true
-                }
+                    {
+                        label: 'Berat Badan Anak',
+                        data: actualData,
+                        borderColor: themeColor,
+                        backgroundColor: themeColor,
+                        borderWidth: 3,
+                        pointRadius: 5,
+                        pointHoverRadius: 7,
+                        fill: false,
+                        tension: 0,
+                        showLine: true
+                    }
             ]
         },
         options: {
@@ -269,7 +269,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     title: { display: true, text: 'Umur (Bulan)', font: { weight: 'bold' } },
                     min: 0,
                     max: chartMaxX,
-                    ticks: { stepSize: 6 }
+                    ticks: { stepSize: 1, callback: v => v + ' bln', font: { size: 10 } },
+                    grid: { display: false }
                 },
                 y: {
                     title: { display: true, text: 'Berat Badan (kg)', font: { weight: 'bold' } },
