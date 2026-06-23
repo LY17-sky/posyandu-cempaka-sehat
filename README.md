@@ -1,180 +1,172 @@
-# Sistem Informasi Posyandu
+# Sistem Informasi Posyandu — Cempaka Sehat
 
-Aplikasi web modern untuk manajemen data posyandu dengan fitur lengkap untuk kader dan orang tua balita.
+Aplikasi web modern untuk manajemen data posyandu dengan fitur lengkap untuk kader, admin pos, dan orang tua balita.
 
 ## ✅ Status: SELESAI (95% Fungsional)
 
-Semua bug kritis telah diperbaiki dan sistem siap digunakan untuk production. Fitur utama berjalan dengan baik, dengan beberapa peningkatan yang bisa ditambahkan nanti.
+Semua bug kritis telah diperbaiki dan sistem siap digunakan. Fitur utama berjalan dengan baik.
 
-### 🔧 Perbaikan Terbaru
+### 🔧 Perbaikan & Penambahan Terbaru
+- ✅ Migrasi database MySQL → **SQLite** (tanpa perlu XAMPP/MySQL)
 - ✅ Database schema diperbarui dengan kolom yang hilang
-- ✅ Semua query database menggunakan prepared statements
-- ✅ Path backup dibuat OS-agnostic
+- ✅ Semua query menggunakan prepared statements
+- ✅ Path backup OS-agnostic
 - ✅ Export PDF diganti dengan HTML printable
-- ✅ Variable typo dan column mismatch diperbaiki
+- ✅ Variable typo & column mismatch diperbaiki
 - ✅ PDO compatibility issues diselesaikan
+- ✅ 3-level access control (super_admin, admin_pos, user_view)
+- ✅ Multi-posyandu support (Cempaka I–V)
 
 ## 🚀 Fitur Utama
 
-### 👥 Dual Role System
-- **ADMIN (Kader Posyandu)**: Akses penuh ke semua modul
-- **USER (Orang Tua)**: Akses terbatas ke data anak sendiri
+### 👥 Triple Role System
+- **Super Admin** — Akses penuh ke semua modul & semua pos
+- **Admin Pos** — Akses terbatas ke data pos masing-masing
+- **User View (Orang Tua)** — Akses baca-saja ke data anak sendiri
 
 ### 📊 Dashboard Interaktif
 - Statistik real-time balita dan penimbangan
 - Grafik tren pertumbuhan bulanan
-- Status gizi dengan indikator warna
+- Status gizi dengan indikator warna (Merah/Kuning/Biru)
 - Notifikasi prioritas untuk balita bermasalah
 
 ### 👶 Modul Balita
 - Manajemen data lengkap (NIK, nama, orang tua, alamat)
-- Pencarian cepat dengan AJAX
+- Pencarian cepat
 - Validasi data otomatis
 
-### ⚖️ Modul Penimbangan (DIUPDATE)
-- **Input Baru**: BB, TB, LK (Lingkar Kepala), LILA (Lingkar Lengan Atas)
-- **Riwayat**: Tabel dengan status gizi WHO
-- **Grafik**: Multi-parameter dengan Chart.js
-- **Deteksi WHO**: Z-score calculation untuk stunting, wasting, dll
+### ⚖️ Modul Penimbangan
+- Input: BB, TB, LK (Lingkar Kepala), LILA (Lingkar Lengan Atas)
+- Riwayat dengan status gizi WHO (Z-score)
+- Grafik multi-parameter
+- Deteksi stunting, wasting, underweight, overweight
 
 ### 💉 Modul Imunisasi
-- Jadwal imunisasi otomatis
-- Status vaksinasi real-time
-- Reminder notifikasi
+- Jadwal imunisasi otomatis berdasarkan usia
+- Status vaksinasi real-time (sudah/belum/segera/terlambat)
+- 21 jenis vaksin sesuai jadwal IDAI
 
-### 📅 Modul Jadwal
-- Jadwal posyandu mingguan
-- Notifikasi WhatsApp simulasi
-- Reminder otomatis
+### 📅 Modul Jadwal Posyandu
+- Jadwal kegiatan posyandu
+- Multi-pos support
 
 ### 📋 Modul Laporan
 - Laporan bulanan penimbangan
-- Export Excel dan PDF (placeholder)
+- Export Excel
+- Cetak HTML printable
 - Statistik tren gizi
 
 ### 🏥 Modul Konsultasi
 - Form konsultasi ke bidan
 - Riwayat percakapan
-- Rekomendasi kesehatan
+- Status pending/dijawab
 
 ### 💾 Modul Backup
-- Auto backup database
-- Restore dari file SQL
-- List backup tersimpan
+- Auto backup database SQLite
+- Restore dari file backup
+- Riwayat backup tersimpan
 
 ### 🖨️ Cetak KMS
-- Kartu Menuju Sehat PDF
-- Template siap cetak
+- Kartu Menuju Sehat
+- Template siap cetak (HTML printable)
+
+### ⚙️ Pengaturan
+- Kelola Pos Cempaka (super_admin)
+- Ubah password profil (semua role)
 
 ## 🎨 Desain UI/UX
-
-- **Modern & Responsive**: Mobile-first design
+- **Modern & Responsive**: Mobile-first dengan Tailwind CSS
 - **Dark Mode**: Toggle dengan localStorage
-- **Tailwind CSS**: Framework utility-first
 - **Chart.js**: Grafik interaktif
-- **SweetAlert2**: Modal konfirmasi
-- **Toast Notifications**: Feedback real-time
-- **Loading States**: UX yang smooth
-- **Animasi**: Fade-in dan hover effects
+- **SweetAlert2**: Modal & konfirmasi
+- **Fetch API**: AJAX tanpa jQuery
 
-## 🗄️ Database Schema
+## 🗄️ Database Schema (SQLite)
 
-```sql
--- Tabel utama
-balita (id, nama, nik, tgl_lahir, nama_ayah, nama_ibu, no_telp, alamat, foto, is_active, created_at)
-timbang (id, balita_id, bb, tb, lk, lila, tgl_timbang, created_at)
-users (id, username, password, role, balita_id)
-imunisasi, jadwal_posyandu, konsultasi (sesuai kebutuhan)
-```
+- **balita** — Data balita (`id`, `nama`, `nik`, `tgl_lahir`, `nama_ayah`, `nama_ibu`, `nik_ibu`, `no_telp`, `alamat`, `jenis_kelamin`, `bb_lahir`, `tb_lahir`, `id_pos`, `is_active`)
+- **timbang** — Riwayat penimbangan (`id`, `balita_id`, `bb`, `tb`, `lk`, `lila`, `tgl_timbang`)
+- **users** — Akun pengguna (`id`, `username`, `password`, `role`, `no_telp`, `id_pos`, `balita_id`)
+- **imunisasi** — Riwayat imunisasi (`id`, `balita_id`, `jenis_imunisasi`, `tgl_imunisasi`, `status`)
+- **jadwal_posyandu** — Jadwal kegiatan (`id`, `tanggal`, `lokasi`, `waktu`, `catatan`)
+- **konsultasi** — Konsultasi bidan (`id`, `balita_id`, `pertanyaan`, `jawaban`, `bidan_id`, `status`)
+- **pos_cempaka** — Data posyandu (`id`, `nama`, `lokasi`, `kontak`)
+- **notifications** — Log notifikasi (`id`, `tujuan`, `pesan`, `status`)
+- **backup_log** — Riwayat backup (`id`, `file_name`, `created_at`)
 
 ## 🛠️ Teknologi
 
-- **Backend**: PHP Native + PDO
-- **Database**: MySQL
+- **Backend**: PHP Native 8+ dengan PDO
+- **Database**: SQLite
 - **Frontend**: HTML5, Tailwind CSS, JavaScript ES6
 - **Charts**: Chart.js
-- **Icons**: Font Awesome
+- **Icons**: Google Material Icons
 - **Modals**: SweetAlert2
 - **AJAX**: Fetch API
+- **CI/CD**: GitHub Actions (PHP lint + smoke test DB)
 
 ## 📦 Instalasi
 
-1. **Clone/Download** ke `C:\xampp\htdocs\posyandu\`
+### Persyaratan
+- PHP 8.0 atau lebih baru (dengan ekstensi `pdo_sqlite` dan `sqlite3`)
+- Web server (Apache / Nginx / PHP built-in server)
 
-2. **Jalankan XAMPP** (Apache + MySQL)
+### Langkah Instalasi
+1. **Clone/download** ke direktori web server
+2. **Konfigurasi database** — Tidak perlu! SQLite otomatis terinisialisasi saat pertama kali diakses oleh `config/database.php`
+3. **Akses aplikasi** — Buka `login.php` di browser
 
-3. **Setup Database**:
-   - Buka browser ke `http://localhost/posyandu/setup.php`
-   - Atau import `schema.sql` manual di phpMyAdmin
+### PHP Built-in Server (untuk development)
+```bash
+cd posyandu
+php -S localhost:8000
+```
+Buka `http://localhost:8000/login.php`
 
-4. **Konfigurasi** (jika perlu):
-   - Edit `config/database.php` untuk kredensial DB
-   - Pastikan folder `backups/` dan `logs/` writable
+## 🔐 Akun Demo
 
-5. **Akses Aplikasi**:
-   - Login: `http://localhost/posyandu/login.php`
+### Super Admin
+| Username | Password | Role |
+|----------|----------|------|
+| `admin` | `password` | Akses penuh semua pos |
 
-### 🔐 3-Level Access Control
+### Admin Pos
+| Username | Password | Pos |
+|----------|----------|-----|
+| `cempaka1` | `pos123` | Cempaka I |
+| `cempaka2` | `pos123` | Cempaka II |
+| `cempaka3` | `pos123` | Cempaka III |
+| `cempaka4` | `pos123` | Cempaka IV |
+| `cempaka5` | `pos123` | Cempaka V |
 
-Sistem mengimplementasikan 3 tingkat akses pengguna:
-
-1. **Super Admin** (`admin` / `password`)
-   - Akses penuh ke semua modul
-   - Dapat melihat semua data dari semua pos
-   - Dapat menambah/edit/hapus data
-   - Akses ke menu Laporan dan Backup
-   - Dapat memilih pos aktif (jika mau)
-
-2. **Admin Pos** (`cempaka1`-`cempaka5` / `pos123`)
-   - Akses terbatas ke data pos yang ditugaskan
-   - Hanya dapat melihat data balita dari pos sendiri
-   - Dapat menambah/edit/hapus data di pos sendiri
-   - Tidak ada akses ke menu Laporan dan Backup
-   - Login langsung ke pos tersebut (tidak perlu pilih pos)
-
-3. **User View** (NIK + Nama Ibu / `password`)
-   - Akses baca-saja (read-only)
-   - Hanya dapat melihat data anak sendiri
-   - Tidak ada tombol Edit/Hapus
-   - Akses terbatas ke beberapa modul (Dashboard, Timbang, Imunisasi, Kartu KMS, Konsultasi)
-   - Dapat melihat riwayat penimbangan anak
-
-### 📊 Demo Data
-
-- **3 Balita** dengan data lengkap
-- **5 Record Penimbangan** dengan LK & LILA
-- **Super Admin**: `admin` / `password`
-- **Admin Pos**: `cempaka1`-`cempaka5` / `pos123`
-- **User Accounts**: Berdasarkan NIK + Nama Ibu (contoh: `1234567890123456 Siti`)
+### User View (Orang Tua)
+Login menggunakan NIK Ibu sebagai username:
+| NIK Ibu | Password | Data Anak |
+|---------|----------|-----------|
+| `1234567890123456` | `password` | Ahmad Rahman |
+| `1234567890123457` | `password` | Fatimah Sari |
+| `1234567890123458` | `password` | Budi Santoso |
 
 ## 🔧 API Endpoints
 
-- `GET /modules/api/get_balita.php?q=search` - Cari balita
-- `GET /modules/api/get_grafik.php?balita_id=X&period=all` - Data grafik
-- `POST /modules/api/login.php` - Autentikasi
-- `POST /modules/api/delete_timbang.php` - Hapus data timbang
+| Method | Endpoint | Deskripsi |
+|--------|----------|-----------|
+| `GET` | `modules/api/get_balita.php?q=` | Cari balita |
+| `GET` | `modules/api/get_grafik.php?balita_id=&period=` | Data grafik |
+| `GET` | `modules/api/get_timbang.php?id=` | Ambil data timbang |
+| `POST` | `modules/api/login.php` | Autentikasi |
+| `POST` | `modules/api/edit_timbang.php` | Edit data timbang |
+| `POST` | `modules/api/delete_timbang.php` | Hapus data timbang |
 
 ## 📝 Catatan Development
-
 - **CSRF Protection**: Semua form dilengkapi token
-- **Prepared Statements**: Keamanan SQL Injection
-- **Error Handling**: Try-catch untuk database operations
+- **Prepared Statements**: Aman dari SQL Injection
+- **Error Handling**: Try-catch untuk semua operasi database
 - **Responsive**: Breakpoints Tailwind (sm/md/lg/xl)
-- **Accessibility**: Semantic HTML dan ARIA labels
-
-## 🎯 Roadmap
-
-- [ ] Integrasi WhatsApp Gateway real
-- [ ] Push notifications browser
-- [ ] Multi-posyandu support
-- [ ] Advanced reporting dengan filters
-- [ ] Mobile app companion
-- [ ] Offline capability (PWA)
-
-## 📄 Lisensi
-
-Project ini untuk keperluan edukasi dan pengembangan sistem informasi kesehatan.
+- **GitHub Actions**: CI otomatis (lint PHP + test database)
 
 ---
+**Dibuat oleh:**
 
-**Dibuat dengan ❤️ untuk Posyandu Indonesia**
+**Nur Istiqlaliyah** — 101230045 — TF23B
+
+**Dengan ❤️ untuk Posyandu Indonesia**
