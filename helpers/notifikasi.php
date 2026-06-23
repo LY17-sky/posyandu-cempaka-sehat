@@ -35,13 +35,14 @@ function sendWA($target, $message) {
     $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
     curl_close($curl);
     
-    $result = json_decode($response, true);
+    $result = $response ? json_decode($response, true) : null;
     
-    if ($httpCode === 200 && isset($result['status']) && $result['status'] === true) {
+    if ($httpCode === 200 && $result && isset($result['status']) && $result['status'] === true) {
         return ['success' => true, 'response' => $result];
     }
     
-    return ['success' => false, 'error' => $result['message'] ?? 'Gagal mengirim WA'];
+    $errorMsg = ($result && isset($result['message'])) ? $result['message'] : 'Gagal mengirim WA';
+    return ['success' => false, 'error' => $errorMsg];
 }
 
 function formatNumber($number) {
@@ -65,7 +66,7 @@ function waTimbangSelesai($balita_id, $bb, $tb, $tgl_timbang) {
         return ['success' => false, 'error' => 'Nomor tidak ditemukan'];
     }
     
-    $message = "Haloibu {$balita['nama_ibu']}! 🍀\n\n";
+    $message = "Halo ibu {$balita['nama_ibu']}! 🍀\n\n";
     $message .= "Data penimbangan {$balita['nama']} sudah dicatat:\n";
     $message .= "📅 Tanggal: {$tgl_timbang}\n";
     $message .= "⚖️ Berat: {$bb} kg\n";
@@ -106,7 +107,9 @@ function waReminderPosyandu($jadwal_id) {
     }
     
     $tgl = date('d/m/Y', strtotime($jadwal['tanggal']));
-    $waktu = $jadwal['waktu'] ? date('H:i', strtotime($jadwal['waktu'])) : '07:00-11:00';
+    $waktuRaw = $jadwal['waktu'] ?? '';
+    $waktuParsed = strtotime($waktuRaw);
+    $waktu = ($waktuParsed !== false) ? date('H:i', $waktuParsed) : '07:00-11:00';
     
     $balitas = fetch_all("SELECT nama, no_telp, nama_ibu FROM balita WHERE is_active = 1 AND no_telp IS NOT NULL AND no_telp != ''");
     

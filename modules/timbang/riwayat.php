@@ -28,38 +28,14 @@ if ($isUserView) {
 
 $records = db()->select("SELECT * FROM timbang WHERE balita_id = ? ORDER BY tgl_timbang DESC", [$balitaId]);
 
-function getStatusGizi($bb, $tb, $lk, $lila) {
-    $status = [];
-    if ($bb < 8.5) $status[] = 'Underweight';
-    elseif ($bb > 12) $status[] = 'Overweight';
-    else $status[] = 'Normal';
-    
-    if ($tb < 65) $status[] = 'Stunting';
-    elseif ($tb > 85) $status[] = 'Tall';
-    else $status[] = 'Normal';
-    
-    if ($lk < 40) $status[] = 'Microcephaly';
-    elseif ($lk > 50) $status[] = 'Macrocephaly';
-    else $status[] = 'Normal';
-    
-    if ($lila < 12) $status[] = 'Wasting';
-    elseif ($lila > 16) $status[] = 'Obese';
-    else $status[] = 'Normal';
-    
-    $badStatus = array_filter($status, fn($s) => $s !== 'Normal');
-    if (empty($badStatus)) return ['Normal', 'Biru', 'Perkembangan anak dalam batas normal'];
-    
-    $colors = ['Stunting' => 'Merah', 'Wasting' => 'Merah', 'Underweight' => 'Kuning', 'Microcephaly' => 'Kuning'];
-    $color = 'Kuning';
-    foreach ($badStatus as $s) {
-        if (isset($colors[$s]) && $colors[$s] === 'Merah') {
-            $color = 'Merah';
-            break;
-        }
-    }
-    
-    $rekomendasi = 'Perlu perhatian khusus dari bidan/tenaga kesehatan';
-    return [implode(', ', $badStatus), $color, $rekomendasi];
+$birthDate = new DateTime($balita['tgl_lahir']);
+function getStatusGizi($bb, $tb, $lk, $lila, $tglTimbang) {
+    global $birthDate;
+    $timbangDate = new DateTime($tglTimbang);
+    $diff = $birthDate->diff($timbangDate);
+    $ageMonths = ($diff->y * 12) + $diff->m;
+    $result = getStatusGiziByAge($bb, $tb, $lk, $lila, $ageMonths, $GLOBALS['balita']['jenis_kelamin'] ?? 'L');
+    return [$result['status'], $result['color'], $result['rekomendasi']];
 }
 ?>
 
@@ -132,7 +108,7 @@ function getStatusGizi($bb, $tb, $lk, $lila) {
                     </tr>
                     <?php else: ?>
                     <?php foreach ($records as $record): ?>
-                    <?php list($status, $color, $rekomendasi) = getStatusGizi($record['bb'], $record['tb'], $record['lk'], $record['lila']); ?>
+                    <?php list($status, $color, $rekomendasi) = getStatusGizi($record['bb'], $record['tb'], $record['lk'], $record['lila'], $record['tgl_timbang']); ?>
                     <tr class="hover:bg-indigo-50/30 transition-colors group">
                         <td class="px-6 py-4 whitespace-nowrap text-indigo-500 font-medium">
                             <?php echo date('d M Y', strtotime($record['tgl_timbang'])); ?>

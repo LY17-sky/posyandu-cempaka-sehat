@@ -5,6 +5,10 @@ $balita = fetch_one("SELECT * FROM balita WHERE id = ? AND is_active = 1", [$id]
 if (!$balita) {
     echo '<div class="card p-6 text-red-600 bg-red-50 border-red-200 rounded-2xl">Data balita tidak ditemukan.</div>';
 } elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+        flash('message', 'Token CSRF tidak valid.');
+        redirect('index.php?module=balita&page=daftar');
+    }
     $nama = escape($_POST['nama'] ?? '');
     $nik = escape($_POST['nik'] ?? '');
     $tanggal_lahir = escape($_POST['tanggal_lahir'] ?? '');
@@ -48,6 +52,7 @@ if (!$balita) {
         </div>
 
         <form method="post" class="space-y-6">
+            <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
             <div class="grid gap-6 md:grid-cols-2">
                 <!-- Data Balita -->
                 <div class="md:col-span-2">

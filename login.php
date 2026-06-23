@@ -63,15 +63,6 @@
                            class="form-input">
                 </div>
 
-                <!-- Help Text -->
-                <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs md:text-sm text-blue-700">
-                    <strong>💡 Petunjuk:</strong>
-                    <ul class="mt-2 space-y-1 list-disc list-inside">
-                        <li><strong>Super Admin:</strong> username: admin, password: password</li>
-                        <li><strong>Admin Pos:</strong> username: cempaka1-5, password: pos123</li>
-                        <li><strong>User View:</strong> NIK Ibu (cth: 1234567890123456)</li>
-                    </ul>
-                </div>
                 
                 <!-- Submit Button -->
                 <button type="submit" class="group relative w-full flex justify-center py-3.5 px-4 border border-transparent text-base font-bold rounded-xl text-white bg-gradient-to-r from-blue-500 to-pink-500 hover:from-blue-600 hover:to-pink-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-lg hover:shadow-pink-500/30 transform transition-all duration-300 hover:-translate-y-1 overflow-hidden animate-slide-in-right" style="animation-delay: 0.3s;">

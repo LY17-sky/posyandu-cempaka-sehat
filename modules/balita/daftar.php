@@ -1,15 +1,9 @@
 <?php
-// Handle Actions
-if (isset($_GET['action'])) {
-    $id = intval($_GET['id'] ?? 0);
-    if ($_GET['action'] === 'delete' && $id > 0) {
-        db()->update('balita', ['is_active' => 0], 'id = ?', [$id]);
-        flash('message', 'Data balita berhasil dihapus.');
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update') {
+    if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+        flash('message', 'Token CSRF tidak valid.');
         redirect('index.php?module=balita&page=daftar');
     }
-}
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update') {
     $id = intval($_POST['id'] ?? 0);
     $nama = escape($_POST['nama'] ?? '');
     $nik = escape($_POST['nik'] ?? '');
@@ -70,7 +64,7 @@ $message = flash('message');
             <div class="mb-6 rounded-xl border-l-4 border-indigo-400 bg-indigo-50 p-4 text-indigo-800 shadow-sm animate-fade-in">
                 <div class="flex items-center gap-3">
                     <svg class="w-5 h-5 text-indigo-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg>
-                    <span class="font-medium"><?php echo $message; ?></span>
+                    <span class="font-medium"><?php echo sanitize($message); ?></span>
                 </div>
             </div>
         <?php endif; ?>
@@ -171,6 +165,7 @@ $message = flash('message');
 
             <form method="post" id="editForm" class="space-y-5">
                 <input type="hidden" name="action" value="update">
+                <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
                 <input type="hidden" name="id" id="edit_id">
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -316,7 +311,15 @@ function deleteBalita(id, nama) {
         }
     }).then((result) => {
         if (result.isConfirmed) {
-            window.location.href = 'index.php?module=balita&page=daftar&action=delete&id=' + id;
+            fetch('index.php?module=balita&page=hapus', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'id=' + id + '&csrf_token=<?php echo generateCSRFToken(); ?>'
+            }).then(() => {
+                location.reload();
+            });
         }
     });
 }

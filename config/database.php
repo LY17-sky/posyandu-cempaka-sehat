@@ -272,21 +272,21 @@ class Database {
         
         // User View - linked to their balita (NIK + nama ibu / password)
         $this->insert('users', [
-            'username' => '1234567890123456 Siti',
+            'username' => '1234567890123456',
             'password' => password_hash('password', PASSWORD_DEFAULT),
             'role' => 'user_view',
             'id_pos' => 1,
             'balita_id' => 1
         ]);
         $this->insert('users', [
-            'username' => '1234567890123457 Maya',
+            'username' => '1234567890123457',
             'password' => password_hash('password', PASSWORD_DEFAULT),
             'role' => 'user_view',
             'id_pos' => 2,
             'balita_id' => 2
         ]);
         $this->insert('users', [
-            'username' => '1234567890123458 Ani',
+            'username' => '1234567890123458',
             'password' => password_hash('password', PASSWORD_DEFAULT),
             'role' => 'user_view',
             'id_pos' => 3,
@@ -299,14 +299,20 @@ function db() {
     return Database::getInstance();
 }
 
+function getUserNik() {
+    $user = getCurrentUser();
+    if (!$user) return '';
+    $username = $user['username'] ?? '';
+    return strtok($username, ' ') ?: $username;
+}
+
 function getPosFilter($column = 'id_pos') {
     $pos_aktif = $_SESSION['pos_aktif'] ?? 0;
     $user = getCurrentUser();
     $userPosId = getUserPosId();
     
     if (isUserView()) {
-        $user = getCurrentUser();
-        return " AND nik_ibu = '" . escape($user['username']) . "'";
+        return " AND nik_ibu = '" . escape(getUserNik()) . "'";
     }
     
     if (isAdminPos()) {
@@ -327,7 +333,7 @@ function getPosFilter($column = 'id_pos') {
 function getBalitaFilter($column = 'id_pos') {
     $user = getCurrentUser();
     if (isUserView()) {
-        return " AND b.nik_ibu = '" . escape($user['username']) . "'";
+        return " AND b.nik_ibu = '" . escape(getUserNik()) . "'";
     }
     
     $pos_aktif = $_SESSION['pos_aktif'] ?? 0;
@@ -435,8 +441,7 @@ function isUserView() {
 function checkBalitaAccess($balita_id) {
     if (isAdmin() || isAdminPos()) return true;
     if (isUserView()) {
-        $user = getCurrentUser();
-        $balita = db()->selectOne('SELECT * FROM balita WHERE id = ? AND nik_ibu = ?', [$balita_id, $user['username']]);
+        $balita = db()->selectOne('SELECT * FROM balita WHERE id = ? AND nik_ibu = ?', [$balita_id, getUserNik()]);
         return (bool)$balita;
     }
     return false;
@@ -450,14 +455,14 @@ function isUser() {
 function getUserBalita() {
     $user = getCurrentUser();
     if (!$user || $user['role'] !== 'user_view') return null;
-    $children = db()->select('SELECT * FROM balita WHERE nik_ibu = ? AND is_active = 1', [$user['username']]);
+    $children = db()->select('SELECT * FROM balita WHERE nik_ibu = ? AND is_active = 1', [getUserNik()]);
     return $children[0] ?? null;
 }
 
 function getMotherBalitas() {
     $user = getCurrentUser();
     if (!$user || $user['role'] !== 'user_view') return [];
-    return db()->select('SELECT * FROM balita WHERE nik_ibu = ? AND is_active = 1', [$user['username']]);
+    return db()->select('SELECT * FROM balita WHERE nik_ibu = ? AND is_active = 1', [getUserNik()]);
 }
 
 function getUserPosId() {
@@ -508,4 +513,127 @@ function getVaksinStatus($balita_id, $birthDate, $vaksin_jenis, $target_bulan) {
     if ($ageMonths < $target_bulan) return 'belum_waktunya';
     if ($ageMonths == $target_bulan) return 'segera';
     return 'terlambat';
+}
+
+function interpolateArray($x, $xPoints, $yPoints) {
+    $n = count($xPoints);
+    for ($i = 0; $i < $n - 1; $i++) {
+        if ($x >= $xPoints[$i] && $x <= $xPoints[$i + 1]) {
+            $ratio = ($x - $xPoints[$i]) / ($xPoints[$i + 1] - $xPoints[$i]);
+            return $yPoints[$i] + $ratio * ($yPoints[$i + 1] - $yPoints[$i]);
+        }
+    }
+    return end($yPoints);
+}
+
+function getWHORef($ageMonths, $gender) {
+    $agePoints = [0, 3, 6, 9, 12, 15, 18, 24, 36, 48, 60];
+    
+    if ($gender === 'L') {
+        $bbM = [3.3, 6.4, 7.9, 8.9, 9.6, 10.3, 10.9, 12.2, 14.3, 16.3, 18.3];
+        $bbS = [0.4, 0.7, 0.8, 0.9, 1.0, 1.0, 1.1, 1.2, 1.4, 1.7, 2.0];
+        $tbM = [49.9, 61.4, 67.6, 72.0, 75.7, 79.1, 82.3, 87.1, 96.1, 103.3, 110.0];
+        $tbS = [1.9, 2.4, 2.4, 2.5, 2.6, 2.7, 2.8, 3.0, 3.2, 3.6, 4.0];
+        $lkM = [34.5, 40.5, 43.3, 45.0, 46.1, 46.9, 47.5, 48.3, 49.5, 50.2, 50.7];
+        $lkS = [1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2];
+    } else {
+        $bbM = [3.2, 5.8, 7.3, 8.2, 8.9, 9.6, 10.2, 11.5, 13.9, 16.1, 18.2];
+        $bbS = [0.4, 0.7, 0.8, 0.9, 1.0, 1.0, 1.1, 1.3, 1.5, 1.8, 2.1];
+        $tbM = [49.1, 59.5, 65.7, 70.1, 74.0, 77.5, 80.7, 85.7, 95.1, 102.7, 109.4];
+        $tbS = [1.9, 2.3, 2.3, 2.4, 2.6, 2.7, 2.8, 3.0, 3.4, 3.8, 4.2];
+        $lkM = [33.9, 39.5, 42.2, 43.8, 45.0, 45.9, 46.6, 47.3, 48.5, 49.3, 49.8];
+        $lkS = [1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2, 1.2];
+    }
+    
+    $ageClamped = max(0, min(60, $ageMonths));
+    
+    return [
+        'bb_median' => interpolateArray($ageClamped, $agePoints, $bbM),
+        'bb_sd' => interpolateArray($ageClamped, $agePoints, $bbS),
+        'tb_median' => interpolateArray($ageClamped, $agePoints, $tbM),
+        'tb_sd' => interpolateArray($ageClamped, $agePoints, $tbS),
+        'lk_median' => interpolateArray($ageClamped, $agePoints, $lkM),
+        'lk_sd' => interpolateArray($ageClamped, $agePoints, $lkS),
+    ];
+}
+
+function calcZScore($value, $median, $sd) {
+    if ($sd == 0) return 0;
+    return ($value - $median) / $sd;
+}
+
+function getStatusGiziByAge($bb, $tb, $lk, $lila, $ageMonths, $gender = 'L') {
+    $ref = getWHORef($ageMonths, $gender);
+    $status = [];
+    $rekomendasi = [];
+    $color = 'Biru';
+    
+    $bbZ = ($bb > 0) ? calcZScore($bb, $ref['bb_median'], $ref['bb_sd']) : 0;
+    $tbZ = ($tb > 0) ? calcZScore($tb, $ref['tb_median'], $ref['tb_sd']) : 0;
+    $lkZ = ($lk > 0) ? calcZScore($lk, $ref['lk_median'], $ref['lk_sd']) : 0;
+    
+    $bbStatus = 'Normal';
+    $tbStatus = 'Normal';
+    
+    if ($bbZ < -3) {
+        $status[] = 'Severely Underweight';
+        $rekomendasi[] = 'Gizi buruk — perlu intervensi medis segera';
+        $color = 'Merah';
+        $bbStatus = 'Kurang';
+    } elseif ($bbZ < -2) {
+        $status[] = 'Underweight';
+        $rekomendasi[] = 'Berat badan kurang — perlu peningkatan asupan gizi';
+        if ($color !== 'Merah') $color = 'Kuning';
+        $bbStatus = 'Kurang';
+    } elseif ($bbZ > 2) {
+        $status[] = 'Overweight';
+        $rekomendasi[] = 'Berat badan berlebih — perlu evaluasi pola makan';
+        if ($color !== 'Merah') $color = 'Kuning';
+        $bbStatus = 'Berlebih';
+    }
+    
+    if ($tbZ < -3) {
+        $status[] = 'Severely Stunted';
+        $rekomendasi[] = 'Stunting berat — perlu penanganan intensif';
+        $color = 'Merah';
+        $tbStatus = 'Kurang';
+    } elseif ($tbZ < -2) {
+        $status[] = 'Stunted';
+        $rekomendasi[] = 'Tinggi badan kurang — risiko stunting';
+        if ($color !== 'Merah') $color = 'Kuning';
+        $tbStatus = 'Kurang';
+    } elseif ($tbZ > 2) {
+        $tbStatus = 'Tinggi';
+    }
+    
+    if ($lkZ < -2 && $lk > 0) {
+        $status[] = 'Microcephaly Risk';
+        $rekomendasi[] = 'Lingkar kepala kecil — konsultasi ke dokter';
+        if ($color !== 'Merah') $color = 'Kuning';
+    }
+    
+    if ($lila > 0) {
+        $lilaAgeRef = ($ageMonths < 6) ? 11.5 : (($ageMonths < 12) ? 13.0 : (($ageMonths < 24) ? 14.0 : 15.0));
+        if ($lila < $lilaAgeRef - 1.5) {
+            $status[] = 'Wasting Risk';
+            $rekomendasi[] = 'Lingkar lengan kecil — risiko malnutrisi akut';
+            if ($color !== 'Merah') $color = 'Kuning';
+        }
+    }
+    
+    $statusLabel = !empty($status) ? implode(', ', $status) : 'Normal';
+    $rekomendasiLabel = !empty($rekomendasi) ? implode('; ', $rekomendasi) : 'Pertumbuhan dalam batas normal, lanjutkan pola asuh yang baik';
+    
+    return [
+        'status' => $statusLabel,
+        'rekomendasi' => $rekomendasiLabel,
+        'color' => $color,
+        'bb_status' => $bbStatus,
+        'tb_status' => $tbStatus,
+        'z_scores' => [
+            'bb_u' => round($bbZ, 2),
+            'tb_u' => round($tbZ, 2),
+            'lk_u' => $lk > 0 ? round($lkZ, 2) : null,
+        ]
+    ];
 }

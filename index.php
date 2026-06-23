@@ -75,7 +75,7 @@ if (!isset($menus[$module]) || !in_array($page, $menus[$module])) {
     $page = 'home';
 }
 
-$directOutputs = ($module === 'api' || ($module === 'laporan' && in_array($page, ['export_excel', 'export_pdf'])) || ($module === 'backup' && in_array($page, ['auto_backup', 'restore'])));
+$directOutputs = ($module === 'api' || ($module === 'laporan' && in_array($page, ['export_excel', 'export_pdf', 'data_timbang_bulanan'])) || ($module === 'backup' && in_array($page, ['auto_backup', 'restore'])));
 if ($directOutputs) {
     include "modules/{$module}/{$page}.php";
     exit;

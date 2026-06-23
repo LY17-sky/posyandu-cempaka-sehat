@@ -1,6 +1,23 @@
 <?php
 require_once __DIR__ . '/../../config/database.php';
-$file = basename($_GET['file'] ?? '');
+requireLogin();
+
+if (!isAdmin()) {
+    flash('message', 'Anda tidak memiliki akses ke fitur ini.');
+    redirect('index.php');
+}
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    flash('message', 'Metode tidak diizinkan.');
+    redirect('index.php?module=backup&page=list');
+}
+
+if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+    flash('message', 'Token CSRF tidak valid.');
+    redirect('index.php?module=backup&page=list');
+}
+
+$file = basename($_POST['file'] ?? '');
 $backupDir = __DIR__ . '/../../backups';
 $message = '';
 if ($file && file_exists($backupDir . DIRECTORY_SEPARATOR . $file)) {

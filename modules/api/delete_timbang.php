@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../../config/database.php';
+requireLogin();
 
 header('Content-Type: application/json');
 
@@ -8,12 +9,14 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+$input = json_decode(file_get_contents('php://input'), true);
+
+if (!verifyCSRFToken($input['csrf_token'] ?? '')) {
     echo json_encode(['success' => false, 'message' => 'Invalid CSRF token']);
     exit;
 }
 
-$id = intval($_POST['id'] ?? 0);
+$id = intval($input['id'] ?? 0);
 
 if ($id <= 0) {
     echo json_encode(['success' => false, 'message' => 'ID tidak valid']);
@@ -30,6 +33,6 @@ try {
     }
     
 } catch (Exception $e) {
-    echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
+    echo json_encode(['success' => false, 'message' => 'Terjadi kesalahan database. Silakan coba lagi.']);
 }
 ?>

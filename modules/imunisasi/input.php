@@ -1,6 +1,10 @@
 <?php
 $balitas = fetch_all("SELECT id, nama FROM balita WHERE is_active = 1" . getPosFilter() . " ORDER BY nama");
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+        flash('message', 'Token CSRF tidak valid.');
+        redirect('index.php?module=imunisasi&page=jadwal');
+    }
     $balita_id = intval($_POST['balita_id'] ?? 0);
     $jenis_imunisasi = escape($_POST['nama_imunisasi'] ?? '');
     $tanggal = escape($_POST['tanggal'] ?? date('Y-m-d'));
@@ -35,6 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
 
         <form method="post" class="space-y-6">
+            <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
             <div class="grid gap-6 md:grid-cols-2">
                 <div class="space-y-2">
                     <label class="block text-xs font-black text-indigo-900 ml-1 uppercase tracking-widest">Pilih Balita</label>

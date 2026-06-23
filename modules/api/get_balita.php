@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../../config/database.php';
+requireLogin();
 
 header('Content-Type: application/json');
 
@@ -39,6 +40,6 @@ try {
     echo json_encode($results);
     
 } catch (Exception $e) {
-    echo json_encode(['error' => 'Database error: ' . $e->getMessage()]);
+    echo json_encode(['error' => 'Terjadi kesalahan database. Silakan coba lagi.']);
 }
 ?>

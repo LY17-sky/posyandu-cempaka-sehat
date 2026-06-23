@@ -77,7 +77,7 @@ header("Cache-Control: private", false);
             <tr>
                 <td class="data text-center"><?php echo $no++; ?></td>
                 <td class="data"><?php echo date('d/m/Y', strtotime($row['tgl_timbang'])); ?></td>
-                <td class="data" style="font-weight: bold;"><?php echo $row['nama']; ?></td>
+                <td class="data" style="font-weight: bold;"><?php echo sanitize($row['nama']); ?></td>
                 <td class="data text-center <?php echo $row['jenis_kelamin'] == 'L' ? 'badge-l' : 'badge-p'; ?>">
                     <?php echo $row['jenis_kelamin'] == 'L' ? 'Laki-laki' : 'Perempuan'; ?>
                 </td>

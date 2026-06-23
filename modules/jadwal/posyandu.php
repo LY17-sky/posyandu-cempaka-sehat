@@ -1,14 +1,20 @@
 <?php
 require_once __DIR__ . '/../../helpers/notifikasi.php';
 
-if (isset($_GET['kirim_reminder'])) {
-    $besok = date('Y-m-d', strtotime('+1 day'));
-    cekDanKirimReminder();
-    flash('message', 'Reminder WhatsApp berhasil dikirim ke orang tua.');
-    redirect('index.php?module=jadwal&page=posyandu');
-}
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['kirim_reminder'])) {
+        if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+            flash('message', 'Token CSRF tidak valid.');
+            redirect('index.php?module=jadwal&page=posyandu');
+        }
+        if (!isAdmin() && !isAdminPos()) {
+            flash('message', 'Anda tidak memiliki akses.');
+            redirect('index.php?module=jadwal&page=posyandu');
+        }
+        cekDanKirimReminder();
+        flash('message', 'Reminder WhatsApp berhasil dikirim ke orang tua.');
+        redirect('index.php?module=jadwal&page=posyandu');
+    }
     $tanggal = escape($_POST['tanggal'] ?? date('Y-m-d'));
     $lokasi = escape($_POST['lokasi'] ?? '');
     $waktu = escape($_POST['waktu'] ?? '');
@@ -44,7 +50,7 @@ $message = flash('message');
             </div>
             <?php if (isAdmin() || isAdminPos()): ?>
             <div class="flex gap-3">
-                <a href="index.php?module=jadwal&page=posyandu&kirim_reminder=1" 
+                <a href="#" onclick="kirimReminderWA()" 
                    class="inline-flex items-center rounded-xl bg-emerald-50 text-emerald-600 px-5 py-2.5 font-bold border border-emerald-100 hover:bg-emerald-600 hover:text-white transition-all shadow-sm">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
                     Kirim Reminder WhatsApp
@@ -78,7 +84,7 @@ $message = flash('message');
                 </label>
                 <label class="block">
                     <span class="text-xs font-bold text-indigo-900 ml-1 uppercase">Waktu</span>
-                    <input type="text" name="waktu" required placeholder="Contoh: 08:00 - Selesai"
+                    <input type="text" name="waktu" required placeholder="Contoh: 08:00 atau 08:00-11:00"
                            class="mt-1.5 block w-full rounded-xl border-indigo-100 bg-white px-4 py-2.5 text-indigo-900 focus:border-pink-400 focus:ring-pink-400/20 transition-all outline-none border-2" />
                 </label>
                 <label class="block">
@@ -134,3 +140,26 @@ $message = flash('message');
         </div>
     </div>
 </div>
+
+<script>
+function kirimReminderWA() {
+    Swal.fire({
+        title: 'Kirim Reminder WhatsApp?',
+        text: 'Reminder akan dikirim ke semua ibu balita untuk jadwal besok.',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#10B981',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Ya, Kirim',
+        cancelButtonText: 'Batal'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch('index.php?module=jadwal&page=posyandu', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'kirim_reminder=1&csrf_token=<?php echo generateCSRFToken(); ?>'
+            }).then(() => location.reload());
+        }
+    });
+}
+</script>

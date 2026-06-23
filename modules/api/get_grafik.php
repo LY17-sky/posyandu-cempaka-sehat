@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../../config/database.php';
+requireLogin();
 
 header('Content-Type: application/json');
 
@@ -70,13 +71,13 @@ try {
         $lk[] = $record['lk'] ? floatval($record['lk']) : null;
         $lila[] = $record['lila'] ? floatval($record['lila']) : null;
         
-        // Calculate status for tooltip
         $statusText = 'Normal';
         if ($record['bb'] && $record['tb']) {
-            if ($record['bb'] < 8.5 || $record['tb'] < 65) {
-                $statusText = 'Kurang';
-            } elseif ($record['bb'] > 12 || $record['tb'] > 85) {
-                $statusText = 'Berlebih';
+            $balitaData = db()->selectOne("SELECT tgl_lahir, jenis_kelamin FROM balita WHERE id = ?", [$record['balita_id']]);
+            if ($balitaData) {
+                $ageMonths = getBalitaAgeInMonths($balitaData['tgl_lahir']);
+                $result = getStatusGiziByAge($record['bb'], $record['tb'], $record['lk'] ?? 0, $record['lila'] ?? 0, $ageMonths, $balitaData['jenis_kelamin'] ?? 'L');
+                $statusText = $result['color'] === 'Biru' ? 'Normal' : $result['status'];
             }
         }
         $status[] = $statusText;
@@ -93,6 +94,6 @@ try {
     ]);
     
 } catch (Exception $e) {
-    echo json_encode(['error' => 'Database error: ' . $e->getMessage()]);
+    echo json_encode(['error' => 'Terjadi kesalahan database. Silakan coba lagi.']);
 }
 ?>

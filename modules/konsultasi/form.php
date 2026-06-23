@@ -1,6 +1,10 @@
 <?php
 $balitas = fetch_all("SELECT id, nama FROM balita WHERE is_active = 1" . getPosFilter() . " ORDER BY nama");
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+        flash('message', 'Token CSRF tidak valid.');
+        redirect('index.php?module=konsultasi&page=form');
+    }
     $balita_id = intval($_POST['balita_id'] ?? 0);
     $nama_pengirim = escape($_POST['nama_pengirim'] ?? '');
     $pertanyaan = escape($_POST['pertanyaan'] ?? '');
@@ -36,12 +40,13 @@ $message = flash('message');
             <div class="mb-6 rounded-xl border-l-4 border-emerald-400 bg-emerald-50 p-4 text-emerald-800 shadow-sm animate-fade-in">
                 <div class="flex items-center gap-3">
                     <svg class="w-5 h-5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg>
-                    <span class="font-medium"><?php echo $message; ?></span>
+                    <span class="font-medium"><?php echo sanitize($message); ?></span>
                 </div>
             </div>
         <?php endif; ?>
 
         <form method="post" class="space-y-6">
+            <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
             <div class="grid gap-6 md:grid-cols-2">
                 <div class="space-y-2">
                     <label class="block text-xs font-black text-indigo-900 ml-1 uppercase tracking-widest">Balita (Opsional)</label>
@@ -56,7 +61,7 @@ $message = flash('message');
                 <div class="space-y-2">
                     <label class="block text-xs font-black text-indigo-900 ml-1 uppercase tracking-widest">Nama Pengirim</label>
                     <input type="text" name="nama_pengirim" required placeholder="Masukkan nama Anda..."
-                           value="<?php echo $_SESSION['username'] ?? ''; ?>"
+                           value="<?php echo sanitize($_SESSION['username'] ?? ''); ?>"
                            class="block w-full rounded-2xl border-indigo-100 bg-indigo-50/30 px-5 py-4 text-indigo-950 focus:border-pink-400 focus:ring-pink-400/20 transition-all outline-none border-2 font-bold">
                 </div>
             </div>

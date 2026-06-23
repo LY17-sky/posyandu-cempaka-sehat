@@ -1,4 +1,4 @@
-﻿// Dashboard functionality and UI initialization
+// Dashboard functionality and UI initialization
 document.addEventListener('DOMContentLoaded', function () {
     // ===== Sidebar Menu Accordion (redesigned) =====
     const menuToggles = document.querySelectorAll('.menu-toggle');

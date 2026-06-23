@@ -64,11 +64,15 @@ $files = array_filter(scandir($backupDir), function ($name) {
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                                         Unduh
                                     </a>
-                                    <button onclick="restoreData('<?php echo urlencode($file); ?>')" 
-                                            class="inline-flex items-center gap-2 bg-amber-50 text-amber-600 px-4 py-2 rounded-lg font-bold hover:bg-amber-600 hover:text-white transition-all text-xs">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                                        Restore
-                                    </button>
+                                    <form method="post" action="index.php?module=backup&page=restore" class="inline" id="restoreForm_<?php echo urlencode($file); ?>">
+                                        <input type="hidden" name="file" value="<?php echo urlencode($file); ?>">
+                                        <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
+                                        <button type="button" onclick="confirmRestore('<?php echo urlencode($file); ?>')" 
+                                                class="inline-flex items-center gap-2 bg-amber-50 text-amber-600 px-4 py-2 rounded-lg font-bold hover:bg-amber-600 hover:text-white transition-all text-xs">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                                            Restore
+                                        </button>
+                                    </form>
                                 </div>
                             </td>
                         </tr>
@@ -80,7 +84,7 @@ $files = array_filter(scandir($backupDir), function ($name) {
 </div>
 
 <script>
-function restoreData(file) {
+function confirmRestore(file) {
     Swal.fire({
         title: 'Restore Database?',
         html: 'Data saat ini akan ditimpa dengan cadangan dari <b>' + decodeURIComponent(file) + '</b>. Tindakan ini tidak dapat dibatalkan.',
@@ -92,7 +96,7 @@ function restoreData(file) {
         cancelButtonText: 'Batal'
     }).then((result) => {
         if (result.isConfirmed) {
-            window.location.href = 'index.php?module=backup&page=restore&file=' + file;
+            document.getElementById('restoreForm_' + file).submit();
         }
     });
 }

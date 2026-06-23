@@ -64,6 +64,6 @@ try {
 
     echo json_encode(['success' => false, 'message' => 'Username atau password salah']);
 } catch (Exception $e) {
-    echo json_encode(['success' => false, 'message' => 'Terjadi kesalahan: ' . $e->getMessage()]);
+    echo json_encode(['success' => false, 'message' => 'Terjadi kesalahan internal. Silakan coba lagi.']);
 }
 ?>

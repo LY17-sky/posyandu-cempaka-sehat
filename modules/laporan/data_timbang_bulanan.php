@@ -1,6 +1,6 @@
 <?php
 $year = intval($_GET['year'] ?? date('Y'));
-$rows = fetch_all("SELECT DATE_FORMAT(tgl_timbang, '%m') AS month, COUNT(*) AS count FROM timbang WHERE YEAR(tgl_timbang) = {$year} GROUP BY DATE_FORMAT(tgl_timbang, '%m') ORDER BY month");
+$rows = fetch_all("SELECT strftime('%m', tgl_timbang) AS month, COUNT(*) AS count FROM timbang WHERE strftime('%Y', tgl_timbang) = ? GROUP BY strftime('%m', tgl_timbang) ORDER BY month", [(string)$year]);
 $labels = [];
 $values = [];
 for ($m = 1; $m <= 12; $m++) {

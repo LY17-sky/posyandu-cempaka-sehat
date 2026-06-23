@@ -30,16 +30,20 @@ $now = new DateTime();
 $diff = $birthDate->diff($now);
 $months = ($diff->y * 12) + $diff->m;
 
-// Status Gizi (Simplistic)
 $lastTimbang = $timbang[0] ?? null;
 $statusGizi = "Normal";
 $statusColor = "emerald";
 if ($lastTimbang) {
-    if ($lastTimbang['bb'] < 8.5) {
-        $statusGizi = "Kurang Gizi";
+    $result = getStatusGiziByAge(
+        $lastTimbang['bb'], $lastTimbang['tb'], 
+        $lastTimbang['lk'] ?? 0, $lastTimbang['lila'] ?? 0, 
+        $months, $balita['jenis_kelamin'] ?? 'L'
+    );
+    if ($result['color'] === 'Merah') {
+        $statusGizi = $result['status'];
         $statusColor = "red";
-    } elseif ($lastTimbang['bb'] > 12) {
-        $statusGizi = "Berlebih Gizi";
+    } elseif ($result['color'] === 'Kuning') {
+        $statusGizi = $result['status'];
         $statusColor = "amber";
     }
 }

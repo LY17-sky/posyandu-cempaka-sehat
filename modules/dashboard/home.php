@@ -2,34 +2,30 @@
 if ($isAdmin || $isAdminPos) {
     $currentMonth = date('Y-m');
     $posFilter = getBalitaFilter('b.id_pos');
-    $statusGizi = db()->select("
-        SELECT 
-            CASE 
-                WHEN bb < 8.5 OR tb < 65 THEN 'Kurang'
-                WHEN bb > 12 OR tb > 85 THEN 'Berlebih'
-                ELSE 'Normal'
-            END as status,
-            COUNT(*) as count
+    $allTimbang = db()->select("
+        SELECT t.bb, t.tb, t.lk, t.lila, t.tgl_timbang, b.tgl_lahir, b.jenis_kelamin, b.id, b.nama, b.nama_ibu
         FROM timbang t
         JOIN balita b ON t.balita_id = b.id
         WHERE strftime('%Y-%m', t.tgl_timbang) = ? $posFilter
-        GROUP BY status
+        ORDER BY t.tgl_timbang DESC
     ", [$currentMonth]);
     
     $statusData = ['Normal' => 0, 'Kurang' => 0, 'Berlebih' => 0];
-    foreach ($statusGizi as $row) {
-        $statusData[$row['status']] = $row['count'];
+    $burukBalita = [];
+    foreach ($allTimbang as $row) {
+        $ageMonths = getBalitaAgeInMonths($row['tgl_lahir']);
+        $result = getStatusGiziByAge($row['bb'], $row['tb'], $row['lk'] ?? 0, $row['lila'] ?? 0, $ageMonths, $row['jenis_kelamin'] ?? 'L');
+        $category = 'Normal';
+        if ($result['color'] === 'Merah' || $result['color'] === 'Kuning') {
+            $category = 'Kurang';
+            if (count($burukBalita) < 5) {
+                $burukBalita[] = ['id' => $row['id'], 'nama' => $row['nama'], 'nama_ibu' => $row['nama_ibu'], 'bb' => $row['bb'], 'tb' => $row['tb'], 'tgl_timbang' => $row['tgl_timbang'], 'status' => $result['status']];
+            }
+        } elseif (str_contains($result['status'], 'Overweight')) {
+            $category = 'Berlebih';
+        }
+        $statusData[$category] = ($statusData[$category] ?? 0) + 1;
     }
-    
-    $oneMonthAgo = date('Y-m-d', strtotime('-1 month'));
-    $burukBalita = db()->select("
-        SELECT b.id, b.nama, b.nama_ibu, t.bb, t.tb, t.tgl_timbang
-        FROM timbang t
-        JOIN balita b ON t.balita_id = b.id
-        WHERE (t.bb < 8.5 OR t.tb < 65) AND t.tgl_timbang >= ? $posFilter
-        ORDER BY t.tgl_timbang DESC
-        LIMIT 5
-    ", [$oneMonthAgo]);
     
     $totalBalita = db()->selectOne("SELECT COUNT(*) as count FROM balita WHERE is_active = 1" . getPosFilter())['count'] ?? 0;
     $totalTimbang = db()->selectOne("SELECT COUNT(*) as count FROM timbang t JOIN balita b ON t.balita_id = b.id WHERE 1=1" . getBalitaFilter('b.id_pos'))['count'] ?? 0;

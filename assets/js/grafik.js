@@ -66,7 +66,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     time: {
                         unit: 'month',
                         displayFormats: {
-                            month: 'MMM YYYY'
+                            month: 'MMM yyyy'
                         }
                     },
                     title: {
