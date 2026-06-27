@@ -23,6 +23,17 @@ if ($id <= 0) {
     exit;
 }
 
+$record = db()->selectOne('SELECT balita_id FROM timbang WHERE id = ?', [$id]);
+if (!$record) {
+    echo json_encode(['success' => false, 'message' => 'Data tidak ditemukan']);
+    exit;
+}
+
+if (!checkBalitaAccess($record['balita_id'])) {
+    echo json_encode(['success' => false, 'message' => 'Anda tidak memiliki akses']);
+    exit;
+}
+
 try {
     $deleted = db()->delete('timbang', 'id = ?', [$id]);
     

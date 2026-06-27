@@ -60,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
         
-        $balita = fetch_one("SELECT tgl_lahir FROM balita WHERE id = ?", [$balita_id]);
+        $balita = fetch_one("SELECT tgl_lahir, jenis_kelamin FROM balita WHERE id = ?", [$balita_id]);
         $whoColor     = 'Biru';
         $whoStatus    = 'Normal';
         $whoRekomendasi = 'Pertumbuhan dalam batas normal, lanjutkan pola asuh yang baik';

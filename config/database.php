@@ -190,6 +190,11 @@ class Database {
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )");
 
+        $this->pdo->exec("CREATE TABLE IF NOT EXISTS config (
+            key_name TEXT PRIMARY KEY,
+            value TEXT
+        )");
+
         // Seed default pos data if empty
         $posCount = $this->selectOne('SELECT COUNT(*) as count FROM pos_cempaka');
         if (!$posCount || intval($posCount['count']) === 0) {
@@ -311,7 +316,8 @@ function getUserNik() {
     $user = getCurrentUser();
     if (!$user) return '';
     $username = $user['username'] ?? '';
-    return strtok($username, ' ') ?: $username;
+    $parts = explode(' ', $username);
+    return $parts[0] ?: $username;
 }
 
 function getPosFilter($column = 'id_pos') {

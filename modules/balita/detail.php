@@ -1,4 +1,7 @@
 <?php
+require_once __DIR__ . '/../../config/database.php';
+requireLogin();
+
 $id = intval($_GET['id'] ?? 0);
 $balita = db()->selectOne("SELECT * FROM balita WHERE id = ?", [$id]);
 
@@ -406,7 +409,7 @@ if ($growthAnalysis['hasEnoughData']) {
                     ?> space-y-1 list-disc list-inside font-medium">
                         <li>Status gizi: <strong><?php echo $statusGizi; ?></strong> (BB/U: <?php echo $bbWhoStatus; ?><?php echo $lastBbZScore !== null ? " Z:{$lastBbZScore}" : ''; ?>, TB/U: <?php echo $tbWhoStatus; ?><?php echo $lastTbZScore !== null ? " Z:{$lastTbZScore}" : ''; ?>)</li>
                         <?php if ($bbWhoStatus === 'Gizi Baik' && $tbWhoStatus === 'Normal'): ?>
-                        <li>Pertumbuhan sehr baik sesuai standar WHO — lanjutkan pola asupan nutrisi yang sekarang</li>
+                        <li>Pertumbuhan sangat baik sesuai standar WHO — lanjutkan pola asupan nutrisi yang sekarang</li>
                         <?php elseif ($bbWhoStatus === 'Obesitas' || $bbWhoStatus === 'Risiko Gizi Lebih'): ?>
                         <li>Perlu pembatasan asupan gizi berlebih dan perbanyak aktivitas fisik anak</li>
                         <?php elseif (in_array($bbWhoStatus, ['Gizi Buruk','Gizi Kurang'])): ?>

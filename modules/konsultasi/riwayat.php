@@ -1,4 +1,7 @@
 <?php
+require_once __DIR__ . '/../../config/database.php';
+requireLogin();
+
 $riwayat = fetch_all("SELECT k.id, k.balita_id, b.nama AS balita, k.nama_pengirim, k.pertanyaan, k.jawaban, k.status, k.created_at FROM konsultasi k LEFT JOIN balita b ON k.balita_id = b.id WHERE 1=1" . getBalitaFilter('b.id_pos') . " ORDER BY k.created_at DESC");
 ?>
 <div class="card p-8 bg-white/80 backdrop-blur-md border-white/20 shadow-xl rounded-2xl relative overflow-hidden">

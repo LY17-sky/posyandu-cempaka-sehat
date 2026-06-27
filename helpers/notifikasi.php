@@ -1,10 +1,19 @@
 <?php
-define('FONNTE_API_KEY', 'your-api-key-here');
 define('FONNTE_URL', 'https://api.fonnte.com/send');
+
+function getFonnteApiKey() {
+    $row = fetch_one("SELECT value FROM config WHERE key_name = 'fonnte_api_key'");
+    return $row ? $row['value'] : '';
+}
 
 function sendWA($target, $message) {
     if (empty($target) || empty($message)) {
         return ['success' => false, 'error' => 'Nomor atau pesan kosong'];
+    }
+    
+    $apiKey = getFonnteApiKey();
+    if (empty($apiKey)) {
+        return ['success' => false, 'error' => 'API Key Fonnte belum dikonfigurasi. Hubungi admin.'];
     }
     
     $target = formatNumber($target);
@@ -24,7 +33,7 @@ function sendWA($target, $message) {
         CURLOPT_POST => true,
         CURLOPT_POSTFIELDS => http_build_query($data),
         CURLOPT_HTTPHEADER => [
-            'Authorization: ' . FONNTE_API_KEY,
+            'Authorization: ' . $apiKey,
             'Content-Type: application/x-www-form-urlencoded'
         ],
         CURLOPT_RETURNTRANSFER => true,

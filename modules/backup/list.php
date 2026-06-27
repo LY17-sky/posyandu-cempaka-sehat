@@ -1,4 +1,7 @@
 <?php
+require_once __DIR__ . '/../../config/database.php';
+requireLogin();
+
 $backupDir = __DIR__ . '/../../backups';
 if (!is_dir($backupDir)) {
     mkdir($backupDir, 0777, true);
@@ -59,15 +62,15 @@ $files = array_filter(scandir($backupDir), function ($name) {
                             <td class="px-6 py-4 text-indigo-500 font-medium"><?php echo $sizeStr; ?></td>
                             <td class="px-6 py-4 text-center whitespace-nowrap">
                                 <div class="flex items-center justify-center gap-3">
-                                    <a href="backups/<?php echo urlencode($file); ?>" 
+                                    <a href="backups/<?php echo rawurlencode($file); ?>" 
                                        class="inline-flex items-center gap-2 bg-indigo-50 text-indigo-600 px-4 py-2 rounded-lg font-bold hover:bg-indigo-600 hover:text-white transition-all text-xs" download>
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                                         Unduh
                                     </a>
-                                    <form method="post" action="index.php?module=backup&page=restore" class="inline" id="restoreForm_<?php echo urlencode($file); ?>">
-                                        <input type="hidden" name="file" value="<?php echo urlencode($file); ?>">
+                                    <form method="post" action="index.php?module=backup&page=restore" class="inline" id="restoreForm_<?php echo rawurlencode($file); ?>">
+                                        <input type="hidden" name="file" value="<?php echo rawurlencode($file); ?>">
                                         <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
-                                        <button type="button" onclick="confirmRestore('<?php echo urlencode($file); ?>')" 
+                                        <button type="button" onclick="confirmRestore('<?php echo rawurlencode($file); ?>')" 
                                                 class="inline-flex items-center gap-2 bg-amber-50 text-amber-600 px-4 py-2 rounded-lg font-bold hover:bg-amber-600 hover:text-white transition-all text-xs">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                                             Restore

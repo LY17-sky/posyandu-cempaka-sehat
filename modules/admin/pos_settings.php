@@ -5,6 +5,10 @@ if (!isAdmin()) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+        flash('error', 'Token keamanan tidak valid. Silakan coba lagi.');
+        redirect('index.php?module=admin&page=pos_settings');
+    }
     if (isset($_POST['tambah_pos'])) {
         $nama = trim($_POST['nama'] ?? '');
         $lokasi = trim($_POST['lokasi'] ?? '');
@@ -90,6 +94,7 @@ if ($editId > 0) {
             </h2>
 
             <form method="post" class="grid gap-6 md:grid-cols-3">
+                <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
                 <?php if ($editData): ?>
                     <input type="hidden" name="edit_pos" value="1">
                     <input type="hidden" name="id" value="<?php echo $editData['id']; ?>">

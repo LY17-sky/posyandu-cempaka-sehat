@@ -1,4 +1,7 @@
 <?php
+require_once __DIR__ . '/../../config/database.php';
+requireLogin();
+
 // Ambil dan validasi parameter bulan
 $bulan = $_GET['bulan'] ?? date('Y-m');
 // Pastikan format Y-m valid

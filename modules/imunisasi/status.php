@@ -1,4 +1,7 @@
 <?php
+require_once __DIR__ . '/../../config/database.php';
+requireLogin();
+
 $balitas = fetch_all("SELECT id, nama FROM balita WHERE is_active = 1" . getPosFilter() . " ORDER BY nama");
 ?>
 <div class="card p-8 bg-white/80 backdrop-blur-md border-white/20 shadow-xl rounded-2xl relative overflow-hidden">

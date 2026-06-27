@@ -1,5 +1,12 @@
 <?php
+require_once __DIR__ . '/../../config/database.php';
+requireLogin();
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!isset($_POST['csrf_token']) || !verifyCSRFToken($_POST['csrf_token'])) {
+        flash('error', 'Token keamanan tidak valid.');
+        redirect('index.php?module=imunisasi&page=jadwal_default');
+    }
     $nama = trim($_POST['nama'] ?? '');
     $keterangan = trim($_POST['keterangan'] ?? '');
     $tanggal = trim($_POST['tanggal'] ?? date('Y-m-d'));
@@ -24,6 +31,7 @@ $message = flash('message');
         <div class="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-emerald-800"><?php echo $message; ?></div>
     <?php endif; ?>
     <form method="post" class="grid gap-4 md:grid-cols-3 mb-6">
+        <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
         <label class="block md:col-span-1">
             <span class="text-sm font-medium text-slate-700">Nama Jadwal</span>
             <input type="text" name="nama" required class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2" />

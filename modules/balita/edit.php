@@ -1,4 +1,7 @@
 <?php
+require_once __DIR__ . '/../../config/database.php';
+requireLogin();
+
 $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 $balita = fetch_one("SELECT * FROM balita WHERE id = ? AND is_active = 1", [$id]);
 

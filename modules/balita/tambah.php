@@ -1,4 +1,7 @@
 <?php
+require_once __DIR__ . '/../../config/database.php';
+requireLogin();
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
         flash('message', 'Token CSRF tidak valid.');
@@ -147,10 +150,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <select name="id_pos" 
                             class="mt-1.5 block w-full rounded-xl border-indigo-100 bg-indigo-50/30 px-4 py-2.5 text-indigo-900 focus:border-pink-400 focus:ring-pink-400/20 transition-all outline-none border-2">
                         <?php 
-                        $posList = [1 => 'Cempaka I', 2 => 'Cempaka II', 3 => 'Cempaka III', 4 => 'Cempaka IV', 5 => 'Cempaka V'];
-                        foreach($posList as $id => $nama): 
+                        $posFromDb = db()->select('SELECT * FROM pos_cempaka ORDER BY nama ASC');
+                        foreach($posFromDb as $pos): 
                         ?>
-                        <option value="<?php echo $id; ?>" <?php echo ($_SESSION['pos_aktif'] ?? 1) == $id ? 'selected' : ''; ?>><?php echo $nama; ?></option>
+                        <option value="<?php echo $pos['id']; ?>" <?php echo ($_SESSION['pos_aktif'] ?? 1) == $pos['id'] ? 'selected' : ''; ?>><?php echo sanitize($pos['nama']); ?></option>
                         <?php endforeach; ?>
                     </select>
                 </label>

@@ -1,4 +1,7 @@
 <?php
+require_once __DIR__ . '/../../config/database.php';
+requireLogin();
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     ?>
     <div class="max-w-lg mx-auto mt-12 text-center">

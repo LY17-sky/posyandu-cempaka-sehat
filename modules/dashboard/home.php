@@ -1,4 +1,7 @@
 <?php
+require_once __DIR__ . '/../../config/database.php';
+requireLogin();
+
 if ($isAdmin || $isAdminPos) {
     $currentMonth = date('Y-m');
     $posFilter = getBalitaFilter('b.id_pos');

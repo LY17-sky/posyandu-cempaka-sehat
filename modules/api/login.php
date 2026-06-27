@@ -22,6 +22,7 @@ try {
     $user = db()->selectOne('SELECT * FROM users WHERE username = ?', [$username]);
     
     if ($user && password_verify($password, $user['password'])) {
+        session_regenerate_id(true);
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['id_pos'] = $user['id_pos'] ?? 0;
         
@@ -44,6 +45,10 @@ try {
     if ($balitaSample) {
         $user = db()->selectOne('SELECT * FROM users WHERE username = ? AND role = ?', [$username, 'user_view']);
         if (!$user) {
+            if (strlen($password) < 6) {
+                echo json_encode(['success' => false, 'message' => 'Password minimal 6 karakter']);
+                exit;
+            }
             // Auto-create user for Mother if not exists
             $userId = db()->insert('users', [
                 'username' => $username,
@@ -55,6 +60,7 @@ try {
         }
 
         if ($user && password_verify($password, $user['password'])) {
+            session_regenerate_id(true);
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['id_pos'] = $user['id_pos'] ?? 0;
             echo json_encode(['success' => true, 'message' => 'Login berhasil', 'role' => $user['role']]);

@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/../../config/database.php';
+requireLogin();
 require_once __DIR__ . '/../../helpers/notifikasi.php';
 $balitas = fetch_all("SELECT id, nama, no_telp, nama_ibu FROM balita WHERE is_active = 1" . getPosFilter() . " ORDER BY nama");
 $message = flash('message');

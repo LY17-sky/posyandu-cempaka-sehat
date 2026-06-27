@@ -1,4 +1,7 @@
 <?php
+require_once __DIR__ . '/../../config/database.php';
+requireLogin();
+
 if ($isUserView) {
     $balitas = getMotherBalitas();
     $balitaId = intval($_GET['balita_id'] ?? ($balitas[0]['id'] ?? 0));

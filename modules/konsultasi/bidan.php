@@ -1,4 +1,7 @@
 <?php
+require_once __DIR__ . '/../../config/database.php';
+requireLogin();
+
 $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 $konsultasi = $id ? fetch_one("SELECT * FROM konsultasi WHERE id = ?", [$id]) : null;
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $konsultasi) {

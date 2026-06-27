@@ -1,4 +1,7 @@
 <?php
+require_once __DIR__ . '/../../config/database.php';
+requireLogin();
+
 $balitas = fetch_all("SELECT id, nama FROM balita WHERE is_active = 1" . getPosFilter() . " ORDER BY nama");
 $id = intval($_GET['id'] ?? 0);
 $balita = ($id && checkBalitaAccess($id)) ? fetch_one("SELECT * FROM balita WHERE id = ? AND is_active = 1", [$id]) : null;

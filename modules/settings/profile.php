@@ -1,7 +1,14 @@
 <?php
+require_once __DIR__ . '/../../config/database.php';
+requireLogin();
+
 $user = getCurrentUser();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+        flash('error', 'Token keamanan tidak valid.');
+        redirect('index.php?module=settings&page=profile');
+    }
     if (isset($_POST['ubah_password'])) {
         $passwordLama = $_POST['password_lama'] ?? '';
         $passwordBaru = $_POST['password_baru'] ?? '';
@@ -107,6 +114,7 @@ $success = flash('success');
             <?php endif; ?>
 
             <form method="post" class="space-y-6">
+                <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
                 <input type="hidden" name="ubah_password" value="1">
 
                 <div>

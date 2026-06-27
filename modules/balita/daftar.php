@@ -1,4 +1,7 @@
 <?php
+require_once __DIR__ . '/../../config/database.php';
+requireLogin();
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update') {
     if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
         flash('message', 'Token CSRF tidak valid.');
